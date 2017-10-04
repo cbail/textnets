@@ -31,7 +31,7 @@ library(sotu)
 The package contains both the content of the text itself `sotu_text` as well as meta data, that includes the name of the president who gave each step. The following code creates a dataframe that binds these two objects together, since the `textnets` package requires text that is inside a dataframe. Future versions of the package may allow the user to read in other text formats (e.g. raw strings or Corpora) 
 
 ```r
-sotu<-data.frame(cbind(sotu_meta, sotu_text), stringsAsFactors=FALSE)
+sotu <- data.frame(cbind(sotu_meta, sotu_text), stringsAsFactors=FALSE)
 sotu$sotu_text<-as.character(sotu$sotu_text)
 ```
 
@@ -73,6 +73,14 @@ In order to further understand which terms are driving the clustering of documen
 
 ```r
 top_words_modularity_classes<-interpret(sotu_text_network, sotu_text_data)
+```
+
+# Centrality Measures
+
+Often in social networks, researchers wish to calculate measures of influence or centrality in order to predict whether or not occupying brokerage positions can create greater social rewards for individuals. As Bail (2016) shows, the same logic can be applied to text networks in order to develop a measure of "cultural betweenness" or the extent to which a given document or word are in between clusters of other words. To calculate cultural betweennes as well as other centrality measures, `textnet` users can use the `centrality` measure. 
+
+```r
+text_centrality <- centrality(sotu_text_network)
 ```
 
 # Visualizing Text Networks
