@@ -33,7 +33,7 @@ library(sotu)
 The package contains both the content of the text itself `sotu_text` as well as meta data, that includes the name of the president who gave each step. The following code creates a dataframe that binds these two objects together, since the `textnets` package requires text that is inside a dataframe. Future versions of the package may allow the user to read in other text formats (e.g. raw strings or Corpora) 
 
 ```r
-sotu<-data.frame(cbind(sotu_meta, sotu_text), stringsAsFactors=FALSE))
+sotu<-data.frame(cbind(sotu_meta, sotu_text), stringsAsFactors=FALSE)
 ```
 
 
