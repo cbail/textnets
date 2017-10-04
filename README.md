@@ -10,3 +10,12 @@ Though the idea to think about texts as networks is not entirely new, recent adv
 The textnets package includes four types of functions. First, it includes two functions that read in text data and produce "tidy text" data, which is particularly amenable to network analysis. Second, it creates networks from tidy-texts. Third, it provides several functions to identify communities of text and interpret their meaning. Finally, the textnets package includes several functions for visualizing text networks. 
 
 # Getting Started
+
+To begin using the textnets package, you'll need to install the current version of the package from github. You'll also need the devtools package installed
+
+```r
+library(devtools)
+install_github("cbail/textnets")
+library(textnets)
+
+```
