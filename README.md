@@ -41,9 +41,9 @@ In the second line of text we coerce `sotu$sotu_text` into a character vector be
 
 # Ingesting Text
 
-The textnet package includes two functions to ingest or "read in" unstructured text. The `prep_text` function creates text networks based upon all types of words, and the `prep_text_noun_phrases` prepares text networks based upon nouns and noun phrases that appear in a given document. Users may prefer to create networks based upon nouns or noun phrases because previous studies have shown that such parts of speech are more useful for mapping the topical content of a text than other parts of speech such as verbs or adjectives (e.g. Rule, Bearman, and Cointet 2015).
+The textnet package includes two functions to ingest or "read in" unstructured text. The `prep_text` function creates text networks based upon all types of words, and the `prep_text_noun_phrases` prepares text networks based upon nouns and noun phrases that appear in a given document. Users may prefer to create networks based upon nouns or noun phrases because previous studies have shown that such parts of speech are more useful for mapping the topical content of a text than other parts of speech such as verbs or adjectives (e.g. Rule, Cointet, and Bearman 2015).
 
-Let's begin with the `prep_text` function. This function requires the user to specifcy a dataframe (`textdata`), a variable within this dataset that describes the name of each document (such as the name of the person who produced it)  (`docname`), and a variable that describes the column of the dataframe that contains the text that the user wants to analyze (`textvar`). Finally, the `prep_text` function requires the user to specify whether a network should be created where documents will be the nodes in the network (in which case edges describe overlap in terms between documents), or if words will be the nodes in the network (in which case words are assigned edges to each other based upon their co-appearance within documents). An example of the former application is Bail (2016), and an example of the latter application is Rule, Bearman, and Cointet (2015). At present the `prep_text` function also includes three optional arguments. The `remove_url` function eliminates any hyperlinks within the data. The `remove_stop_words` function eliminates very common English-language words such as "and," the" or "at." The `stem` function reduces each term to its stem form. For example, the term "running" would become the term "run" if the user sets `stem=TRUE`. The `prep_text` function outputs a dataframe in tidytext style, where each line of the dataframe describes a word, within a document, and its overall frequency within the document.
+Let's begin with the `prep_text` function. This function requires the user to specifcy a dataframe (`textdata`), a variable within this dataset that describes the name of each document (such as the name of the person who produced it)  (`docname`), and a variable that describes the column of the dataframe that contains the text that the user wants to analyze (`textvar`). Finally, the `prep_text` function requires the user to specify whether a network should be created where documents will be the nodes in the network (in which case edges describe overlap in terms between documents), or if words will be the nodes in the network (in which case words are assigned edges to each other based upon their co-appearance within documents). An example of the former application is Bail (2016), and an example of the latter application is Rule, Cointet, and Bearman (2015). At present the `prep_text` function also includes three optional arguments. The `remove_url` function eliminates any hyperlinks within the data. The `remove_stop_words` function eliminates very common English-language words such as "and," the" or "at." The `stem` function reduces each term to its stem form. For example, the term "running" would become the term "run" if the user sets `stem=TRUE`. The `prep_text` function outputs a dataframe in tidytext style, where each line of the dataframe describes a word, within a document, and its overall frequency within the document.
 
 The following code reads in the State of the Union Data in order to create a text network where the nodes are presidents, and the edges are overlap in the language they use. In this example we also remove stop words and stem.
 
@@ -71,25 +71,30 @@ In order to group documents according to their similarity-- or in order to ident
 ```r
 sotu_communities<-text_communities(sotu_text_network)
 ```
-In order to further understand which terms are driving the clustering of documents or words, the user can use the `interpret` function, which also reads in an object created by the `create_textnet` function and outputs the words with the 10 highest term-frequency-inverse-document frequencies within each cluster or modularity class
+In order to further understand which terms are driving the clustering of documents or words, the user can use the `interpret` function, which also reads in an object created by the `create_textnet` function and outputs the words with the 10 highest term-frequency-inverse-document frequencies within each cluster or modularity class. In order to match words, the function requires that the user specify the name of the text data frame object used to create the text network-- in this case `sotu_text_data` (see above). 
 
 ```r
-top_words_modularity_classes<-interpret(sotu_text_network)
+top_words_modularity_classes<-interpret(sotu_text_network, sotu_text_data)
 ```
 
 # Visualizing Text Networks
 
-Finally, the textnets package includes two functions to visualize text networks created in the previous steps. The `visualize` function creates a network diagram where nodes are colored by their cluster or modularity class (see previous section). In many cases, text networks will be very dense (that is, there will be a very large number of edges because most documents share at least one word). Visualizing text networks therefore creates inherent challenges, because such dense networks are very cluttered. To make text networks more readable, the `visualize` function requires the user to specify a `prune_cut` argument, which specifies which quantile of edges should be kept for the visualization. For example, if the user sets `prune_cut=.9` only edges that have a weight in the 90th percentile or above will be kept. The `visualize` function also includes an argument that determines which nodes will be labeled, since network visualizations with too many node labels can be difficult to interpret. The user specifies an argument called `label_degree_cut` which specifies the degree, or number of each connections, that nodes which are labeled should have. For example, if the user only wants nodes that have at least 3 connections to other nodes to be labeled (and only wants to visualize edges with a weight that is greater than the 90th percentile), she or he would use the following code:
+Finally, the textnets package includes two functions to visualize text networks created in the previous steps. The `visualize` function creates a network diagram where nodes are colored by their cluster or modularity class (see previous section). In many cases, text networks will be very dense (that is, there will be a very large number of edges because most documents share at least one word). Visualizing text networks therefore creates inherent challenges, because such dense networks are very cluttered. To make text networks more readable, the `visualize` function requires the user to specify a `prune_cut` argument, which specifies which quantile of edges should be kept for the visualization. For example, if the user sets `prune_cut=.9` only edges that have a weight in the 90th percentile or above will be kept. The `visualize` function also includes an argument that determines which nodes will be labeled, since network visualizations with too many node labels can be difficult to interpret. The user specifies an argument called `label_degree_cut` which specifies the degree, or number of each connections, that nodes which are labeled should have. For example, if the user only wants nodes that have at least 3 connections to other nodes to be labeled (and only wants to visualize edges with a weight that is greater than the 50th percentile), she or he would use the following code:
 
 ```r
-visualize(sotu_text_network, .90, label_degree_cut=3)
+visualize(sotu_text_network, .50, label_degree_cut=3)
 ```
 The final function in the textnets package is the `visualize_d3js` function. This function outputs an interactive javascript visualization of the text network, where the user can mouse over each node in order to reveal its node label. Once again, nodes are coloured by their modularity class, and the user must sepcify a `prune_cut`argument:
 
 ```r
-visualize_d3js(sotu_text_network
+visualize_d3js(sotu_text_network, .50)
 ```
+# References
 
+Bail, Christopher A. 2016. "Combining Network Analysis and Natural Language Processing to Examine how Ad-
+vocacy Organizations Stimulate Conversation on Social Media." Proceedings of the National Academy of Sciences, 113:42 11823-11828
+
+Rule, Alix and Jean-Philippe Cointet and Peter Bearman. 2015. "Lexical shifts, substantive changes, and continuity in the State of the Union Discourse, 1790-2014. 
 
 
 
