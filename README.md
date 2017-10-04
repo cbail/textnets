@@ -9,7 +9,7 @@ Though the idea to think about texts as networks is not entirely new, recent adv
 
 # Getting Started
 
-To begin using the textnets package, you'll need to install the current version of the package from github. You'll also need the devtools package installed
+To begin using the textnets package, you'll need to install the current version of the package from github. 
 
 ```r
 install.packages("devtools")
@@ -18,6 +18,19 @@ install_github("cbail/textnets")
 library(textnets)
 
 ```
+You'll also need the devtools package installed and several other packages for network analysis, text analysis, and visualization.
+
+```r
+library(dplyr)
+library(tidytext)
+library(stringr)
+library(SnowballC)
+library(phrasemachine)
+library(igraph)
+library(ggraph)
+library(networkD3)
+```
+
 
 # Example Data: State of the Union Addresses
 
