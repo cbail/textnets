@@ -10,7 +10,7 @@ Though the idea to think about texts as networks is not entirely new, recent adv
 
 # Getting Started
 
-To begin using the textnets package, you'll need to install the current version of the package from github. 
+To begin using the textnets package, you'll need to install the current version of the package from github. In order to install a package from Github you'll need the "devtools" package if you don't have it already.
 
 ```r
 install.packages("devtools")
@@ -19,7 +19,7 @@ install_github("cbail/textnets")
 library(textnets)
 
 ```
-You'll also need the devtools package installed and several other packages for network analysis, text analysis, and visualization.
+You'll also need several other packages for network analysis, text analysis, and visualization (install where necessary).
 
 ```r
 library(dplyr)
@@ -35,7 +35,7 @@ library(networkD3)
 
 # Example Data: State of the Union Addresses
 
-The State of the Union Address is a speech given by the president of the United States each year to describe past accommplishments and future challenges facing the country. It is a popular dataset within the field of Natural Language Processing because it provides a diverse range of language by different individuals. It is also convenient for our purposes because there is an r package that makes these data readily available.
+Throughout this tutorial, we will employ text data from The State of the Union Address, which is a speech given by the president of the United States each year to describe past accommplishments and future challenges facing the country. It is a popular dataset within the field of Natural Language Processing because it provides a diverse range of language by different individuals. It is also convenient for our purposes because there is an r package that makes these data readily available.
 
 ```r
 install.packages("sotu")
