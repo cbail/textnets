@@ -82,7 +82,9 @@ Finally, the textnets package includes two functions to visualize text networks 
 ```r
 visualize(sotu_text_network, .50, label_degree_cut=3)
 ```
-![SOTU Plot](/State of the Union Plot.png)
+
+![Alt text](/cbail/textnets/State of the Union Plot.png?raw=true "Optional Title")
+
 
 
 The final function in the textnets package is the `visualize_d3js` function. This function outputs an interactive javascript visualization of the text network, where the user can mouse over each node in order to reveal its node label. Once again, nodes are coloured by their modularity class, and the user must sepcify a `prune_cut`argument:
