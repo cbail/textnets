@@ -34,8 +34,10 @@ The package contains both the content of the text itself `sotu_text` as well as 
 
 ```r
 sotu<-data.frame(cbind(sotu_meta, sotu_text), stringsAsFactors=FALSE)
+sotu$sotu_text<-as.character(sotu$sotu_text)
 ```
 
+In the second line of text we coerce `sotu$sotu_text` into a character vector because it cannot accept factor variables at the moment. 
 
 # Ingesting Text
 
@@ -52,7 +54,7 @@ sotu_text_data<-prep_text(sotu, "president", "sotu_text", node_type="docs", remo
 The syntax for creating a textnetwork using the `prep_text_noun_phrases` function is very similar to the `prep_text` function but instead of outputing all words in each document, it only outputs nouns and nounphrases. This function accomplishes this by using the `phrasemachine` package, which requires a version of Java >7, or a Python backend with the Spacy package. Either way, the `prep_text_noun_phrases` package will take much longer than the `prep_text` function because it must perform part-of-speech tagging on each sentence within each document in the dataframe. But users may conclude that the added time is worth it if they belive nouns and noun phrases are more likely to describe the topical content of a document than other parts of speech.
 
 ```r
-sotu_text_data_nouns<-prep_text_noun_phrases(sotu, "president, "sotu_text", node_type="docs")
+sotu_text_data_nouns<-prep_text_noun_phrases(sotu, "president", "sotu_text", node_type="docs")
 ```
 
 # Creating Text Networks
@@ -60,7 +62,7 @@ sotu_text_data_nouns<-prep_text_noun_phrases(sotu, "president, "sotu_text", node
 The workhorse function within the `textnets` package is the `create_textnet` function. This function reads in an object created using the `prep_text` or `prep_text_noun_phrases` functions and outputs a weighted adjacency matrix, or a square matrix where the rows and columns correspond to either the names of the documents (if the user has specificed the `node_type="docs"` argument in the previous stage), or words (if the user has specified the `node_type="words` argument). The cells of the adjacency matrix are the sum of the term-frequency inverse-document frequency (TFIDF) for overlapping terms between two documents. This is the procedure described in Bail (2016).
 
 ```r
-sotu_text_network<-create_textnet(sotu_text_data)
+sotu_text_network<-create_textnet(sotu_text_data, node_type="docs")
 ```
 # Analyzing Text Networks
 
