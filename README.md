@@ -19,3 +19,11 @@ install_github("cbail/textnets")
 library(textnets)
 
 ```
+# Ingesting Text
+
+The textnet package includes two functions to ingest or "read in" unstructured text. The `prep_text` function creates text networks based upon all types of words, and the `prep_text_noun_phrases` prepares text networks based upon nouns and noun phrases that appear in a given document. Users may prefer to create networks based upon nouns or noun phrases because previous studies have shown that such parts of speech are more useful for mapping the topical content of a text than other parts of speech such as verbs or adjectives (e.g. Rule, Bearman, and Cointet 2015).
+
+Let's begin with the `prep_text` function. This function requires the user to specifcy a dataframe (`textdata`), a variable within this dataset that describes the name of each document (such as the name of the person who produced it)  (`docname`), and a variable that describes the column of the dataframe that contains the text that the user wants to analyze (`textvar`). Finally, the `prep_text` function requires the user to specify whether a network should be created where documents will be the nodes in the network (in which case edges describe overlap in terms between documents), or if words will be the nodes in the network (in which case words are assigned edges to each other based upon their co-appearance within documents). An example of the former application is Bail (2016), and an example of the latter application is Rule, Bearman, and Cointet (2015). At present the `prep_text` function also includes three optional arguments. The `remove_url` function eliminates any hyperlinks within the data. The `remove_stop_words` function eliminates very common English-language words such as "and," the" or "at." The `stem` function reduces each term to its stem form. For example, the term "running" would become the term "run" if the user sets `stem=TRUE`.
+
+
+
