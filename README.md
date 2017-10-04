@@ -32,7 +32,7 @@ The package contains both the content of the text itself `sotu_text` as well as 
 
 ```r
 sotu <- data.frame(cbind(sotu_meta, sotu_text), stringsAsFactors=FALSE)
-sotu$sotu_text<-as.character(sotu$sotu_text)
+sotu$sotu_text <- as.character(sotu$sotu_text)
 ```
 
 In the second line of text we coerce `sotu$sotu_text` into a character vector because it cannot accept factor variables at the moment. 
@@ -46,13 +46,13 @@ Let's begin with the `prep_text` function. This function requires the user to sp
 The following code reads in the State of the Union Data in order to create a text network where the nodes are presidents, and the edges are overlap in the language they use. In this example we also remove stop words and stem.
 
 ```r
-sotu_text_data<-prep_text(sotu, "president", "sotu_text", node_type="docs", remove_stop_words=TRUE, stem=TRUE)
+sotu_text_data <- prep_text(sotu, "president", "sotu_text", node_type="docs", remove_stop_words=TRUE, stem=TRUE)
 ```
 
 The syntax for creating a textnetwork using the `prep_text_noun_phrases` function is very similar to the `prep_text` function but instead of outputing all words in each document, it only outputs nouns and nounphrases. This function accomplishes this by using the `phrasemachine` package, which requires a version of Java >7, or a Python backend with the Spacy package. Either way, the `prep_text_noun_phrases` package will take much longer than the `prep_text` function because it must perform part-of-speech tagging on each sentence within each document in the dataframe. But users may conclude that the added time is worth it if they belive nouns and noun phrases are more likely to describe the topical content of a document than other parts of speech.
 
 ```r
-sotu_text_data_nouns<-prep_text_noun_phrases(sotu, "president", "sotu_text", node_type="docs")
+sotu_text_data_nouns <- prep_text_noun_phrases(sotu, "president", "sotu_text", node_type="docs")
 ```
 
 # Creating Text Networks
@@ -60,19 +60,19 @@ sotu_text_data_nouns<-prep_text_noun_phrases(sotu, "president", "sotu_text", nod
 The workhorse function within the `textnets` package is the `create_textnet` function. This function reads in an object created using the `prep_text` or `prep_text_noun_phrases` functions and outputs a weighted adjacency matrix, or a square matrix where the rows and columns correspond to either the names of the documents (if the user has specificed the `node_type="docs"` argument in the previous stage), or words (if the user has specified the `node_type="words` argument). The cells of the adjacency matrix are the sum of the term-frequency inverse-document frequency (TFIDF) for overlapping terms between two documents. This is the procedure described in Bail (2016).
 
 ```r
-sotu_text_network<-create_textnet(sotu_text_data, node_type="docs")
+sotu_text_network <- create_textnet(sotu_text_data, node_type="docs")
 ```
 # Analyzing Text Networks
 
 In order to group documents according to their similarity-- or in order to identify latent themese across texts-- users may wish to cluster documents or words within text networks. The `text_communities` function applies the Louvain community detection algorithm to do this, which automatically determines the number of clusters within a given network. The function outputs a dataframe with the cluster or "modularity" class to which each document or word has been assigned.
 
 ```r
-sotu_communities<-text_communities(sotu_text_network)
+sotu_communities <- text_communities(sotu_text_network)
 ```
 In order to further understand which terms are driving the clustering of documents or words, the user can use the `interpret` function, which also reads in an object created by the `create_textnet` function and outputs the words with the 10 highest term-frequency-inverse-document frequencies within each cluster or modularity class. In order to match words, the function requires that the user specify the name of the text data frame object used to create the text network-- in this case `sotu_text_data` (see above). 
 
 ```r
-top_words_modularity_classes<-interpret(sotu_text_network, sotu_text_data)
+top_words_modularity_classes <- interpret(sotu_text_network, sotu_text_data)
 ```
 
 # Centrality Measures
