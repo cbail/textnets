@@ -18,17 +18,17 @@ visualize<-function(text_network, prune_cut, label_degree_cut=0, betweenness=FAL
   isolates <- V(pruned)[degree(pruned)==0]
   pruned <- delete.vertices(pruned, isolates)
   #calculate modularity for coloring
-  communities<-cluster_louvain(text_network)
-  V(pruned)$modularity<-communities$memberships
+  communities <- cluster_louvain(pruned)
+  V(pruned)$modularity<-communities$membership
   #calculate betweenness for sizing nodes
   size=2
   if(betweenness){
-    size<-betweenness(text_network)
+    size<-betweenness(pruned)
   }
   #make visualization
   ggraph(pruned, layout = "fr") +
-    geom_node_point(color = V(pruned)$modularity, size = size) +
     geom_edge_link(aes(edge_alpha = weight), show.legend = FALSE)+
+    geom_node_point(color = V(pruned)$modularity, size = size) +
     geom_node_text(aes(label = name, filter=degree>label_degree_cut), repel = TRUE, size=2) +
     theme_void()
 }
