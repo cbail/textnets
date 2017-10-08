@@ -1,4 +1,4 @@
-prep_text_noun_phrases <-function(textdata, docname, textvar, node_type=c("docs","words"),
+prep_text_noun_phrases <-function(textdata, docname, textvar, node_type=c("docs","words"), max_ngram_length = 4,
                                         remove_url=TRUE) {
 
   library(dplyr)
@@ -17,7 +17,7 @@ prep_text_noun_phrases <-function(textdata, docname, textvar, node_type=c("docs"
     #remove all URLS
     mutate_at(textvar, funs(str_replace_all(., "https?://t\\.co/[A-Za-z\\d]+|https?://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https?", ""))) %>%
     #tidy text
-    mutate_at(textvar, funs(phrasemachine((.)))) %>%
+    mutate_at(textvar, funs(phrasemachine(., maximum_ngram_length = max_ngram_length))) %>%
     group_by_(docname) %>%
     mutate_at(textvar, funs(paste0(unlist(.),collapse=" "))) %>%
     unnest_tokens_("word", textvar)  %>%
