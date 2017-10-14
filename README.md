@@ -1,13 +1,13 @@
 # textnets
 R package for automated text analysis using network techniques.
 
-# Overview
+## Overview
 
-There is growing interest in automated detection of latent themes in unstructured text data. Thus far, much attention has been given to topic models, but analyzing texts using the tools of network analysis is an interesting alternative. Though in social science we normally think about network analysis as describing relationships between people, it can also be applied to understand relationships between words— for example, by linking words that co-occur in the same document, or that co-occur in documents written by the same author, within the same year, or by the same publisher, etc. Such an approach allows us to generate new, more intuitive visualizations of textual themes across documents, while also allowing us to employ cutting-edge community detection algorithms to identify themes in a manner that has various advantages over topic modeling, described in detail by Bail (2017) ["Combining Network Analysis and Natural Language Processing to Examine how Advocacy Organizations Stimulate Conversation on Social Media." Proceedings of the National Academy of Sciences. 113:42 11823-11828](http://www.pnas.org/content/113/42/11823.full.pdf?with-ds=yes).
+There is growing interest in automated detection of latent themes in unstructured text data. Thus far, much attention has been given to topic models, but analyzing texts using the tools of network analysis is an interesting alternative. Though in social science we normally think about network analysis as describing relationships between people, it can also be applied to  relationships between words— for example, by linking words that co-occur in the same document, or that co-occur in documents written by the same author, in the same year, etc. Such an approach allows us to generate new, more intuitive visualizations of textual themes across documents, while also allowing us to employ cutting-edge community detection algorithms to identify themes in a manner that has various advantages over topic modeling, described in detail by Bail (2017) ["Combining Network Analysis and Natural Language Processing to Examine how Advocacy Organizations Stimulate Conversation on Social Media." Proceedings of the National Academy of Sciences. 113:42 11823-11828](http://www.pnas.org/content/113/42/11823.full.pdf?with-ds=yes).
 
-Though the idea to think about texts as networks of words is not entirely new, advances in Natural Language Processing and community detection analysis have pushed things forward. The textnets package is an attempt to make these innovations widely accessible, and to encourage others to innovate further. The functions of the textnets package fall into four categories: those that prepare texts for analysis, those that produce text networks, those that detect communities within these networks, and those that visualize the networks and their communities.
+Though the idea to think about texts as networks of words is not entirely new, advances in Natural Language Processing and community detection analysis have pushed things forward. The textnets package is an attempt to make these innovations widely accessible, and to encourage others to innovate further. The functions of the textnets package fall into four main categories: those that prepare texts for analysis, those that produce text networks, those that detect communities within these networks, and those that visualize the networks and their communities.
 
-# Getting Started
+## Getting Started
 
 To begin using the `textnets` package, you'll need to install the current version of the package from Github. To do so, you'll need the R "devtools" package, if you don't have it already.
 
@@ -32,30 +32,58 @@ library(networkD3)
 ```
 
 
-# Example Data: State of the Union Addresses
+### Two-mode networks
 
-Throughout this tutorial, we will employ text data from The State of the Union Address, which is a speech given by the president of the United States each year to describe past accomplishments and future challenges facing the nation. It is a popular dataset in the field of Natural Language Processing because it provides a diverse range of language by different individuals over time. It is also convenient for our purposes because there is an R package that makes these data readily available.
+It is important to note that the textnet package constructs two-mode networks (aka affiliation, or bipartite networks). Such networks include two sets of nodes (vertices), and edges (links) are only created between nodes belonging to different sets. In textnet, one node set is always comprised of the words found across documents. The other node set is specified by the user and can include the documents themselves, or some meta data about those documents, such as the authors, publishers, dates, etc. These two node sets are extracted from the `textvar` and `groupvar` input parameters, described further below. 
+
+To clarify this, let's take the example of a network where the first node set is words found in US newspaper headlines on July 20, 1969 (the first moon landing), and the second node set is the newspapers themselves. Here is a two-mode projection of this network:
+
+<div style="width:500px; height=500px">
+![](figures/twomode.png)
+</div>
+
+As you can see, edges are only drawn between newspapers and words (i.e. nodes belonging to different sets). Newspapers are connected to a word if that word appears in it's headline.
+
+With some reshaping of the data, this two-mode network can be projected in either of its one-mode forms. That is, with either word nodes connected through the newspapers they share in common, or with newspapers connected through the words they share in common.
+
+<div style="width:700px; height=700px">
+
+![](figures/bothmodes.png)
+
+</div>
+
+
+### Data format
+
+At present, the textnets package requires text to be inside a dataframe. Specifically, a dataframe where each row represents a document, and the text of each document is contained in a column, with other columns including document meta data. To get a better sense of this, let's take a look at some sample data provided by the sotu package in R. We will be using this data throughout the remained for the tutorial. 
 
 ```r
 install.packages("sotu")
 library(sotu)
 ```
 
-The sotu package provides both the text of every State of the Uniion address, and meta data describing the name of the president who delivered the address, the date of delivery, and the president's party affiliation. The following code creates a dataframe that binds these two objects together, since the textnets package currently requires text to be inside a dataframe. Specifically, the input of textnets is a dataframe, where each row represents a document; the text of each document is contained in a column, with other columns including meta data information on the document.
+This data provides texts from The State of the Union Address, which is a speech given by the president of the United States each year to describe past accomplishments and future challenges facing the nation. It is a popular dataset in the field of Natural Language Processing because it provides a diverse range of language by different individuals over time.
+For our purposes, the data are ideal because they contain text for every State of the Union address, and meta data describing the name of the president who delivered the address, the date of delivery, and the president's party affiliation. 
+
+The following code binds the text and meta data objects together to make a single dataframe. On the second line of code, we coerce `sotu$sotu_text` into a character vector, as textnets cannot accept factor variables at the moment.
 
 ```r
-sotu <- data.frame(cbind(sotu_meta, sotu_text), stringsAsFactors=FALSE)
+sotu <- data.frame(cbind(sotu_text, sotu_meta), stringsAsFactors=FALSE)
 sotu$sotu_text <- as.character(sotu$sotu_text)
 ```
 
-On the second line of code, we coerce `sotu$sotu_text` into a character vector, as textnets cannot accept factor variables at the moment.
+Be sure to examine the format of this data, as yours will want to look something similar if you plan to analyze them using the textnets package. 
+
+
+
+
 
 
 # Prepare Text
 
-The textnet package includes two functions to prepare texts for analysis. The `prep_text` function prepares texts for networks based upon all types of words, while the `prep_text_noun_phrases` prepares text for networks based upon nouns and noun phrases only. Users may prefer to create networks based on only nouns or noun phrases because previous studies have shown that such parts of speech are more useful in mapping the topical content of a text than other parts of speech, such as verbs or adjectives (e.g. Rule, Cointet, and Bearman 2015).
+The textnet package includes two functions to prepare texts for analysis. The `prep_text` function prepares texts for networks using all types of words, while the `prep_text_noun_phrases` prepares text for networks using only nouns and noun phrases. Users may prefer to create networks based on only nouns or noun phrases because previous studies have shown that such parts of speech are more useful in mapping the topical content of a text than other parts of speech, such as verbs or adjectives (e.g. Rule, Cointet, and Bearman 2015).
 
-Let's begin with the `prep_text` function. This function requires the user to specify three parameters: a dataframe (`textdata`), a column within that dataframe describing the name of each document (such as the name of the person who produced it)  (`docname`), and a column within that dataframe containing the document texts that the user would like to to analyze (`textvar`). Finally, the `prep_text` function requires the user to specify whether a network should be created where documents will be the nodes in the network (in which case edges describe overlap in terms between documents), or if words will be the nodes in the network (in which case words are assigned edges to each other based upon their co-appearance within documents). An example of the former application is Bail (2016), and an example of the latter application is Rule, Cointet, and Bearman (2015).
+Let's begin with the `prep_text` function. This function requires the user to provide three inputs: a dataframe (`mydf`), a column within that dataframe containing the texts that the user would like to to analyze (`textvar`), and a column within that dataframe describing the groups through which the words of those texts will be linked (`groupvar`). `groupvar`, for example, could contain unique document ids, if the user would like to link words co-occurring within documents, or it could be unique author ids, if the user would like to link words co-occurring by authors, etc. In network analysis, we would think of this `groupvar` as the  Finally, the `prep_text` function requires the user to specify whether a network should be created where documents will be the nodes in the network (in which case edges describe overlap in terms between documents), or if words will be the nodes in the network (in which case words are assigned edges to each other based upon their co-appearance within documents). An example of the former application is Bail (2016), and an example of the latter application is Rule, Cointet, and Bearman (2015).
 
 At present the `prep_text` function also includes three optional arguments. The `remove_url` function eliminates any hyperlinks within the text. The `remove_stop_words` function eliminates very common English-language words such as "and," the" or "at." The `stem` function reduces each term to its stem form. For example, the term "running" would become the term "run" if the user sets `stem=TRUE`.
 
@@ -68,7 +96,9 @@ sotu_text_data <- prep_text(sotu, "president", "sotu_text", node_type="docs", re
 
 
 The syntax for creating a text network using the `prep_text_noun_phrases` function is very similar to the `prep_text` function, but instead of outputing all words in each document, it only outputs nouns and nounphrases. Nouns are identified using the `phrasemachine` package, which requires a version of Java >7, or a Python backend with the Spacy package. Either way, the `prep_text_noun_phrases` package will take much longer than the `prep_text` function because it must perform part-of-speech tagging on each sentence within each document in the dataframe. But users may conclude that the added time is worth it if they belive nouns and noun phrases are more likely to describe the topical content of a document than other parts of speech.
+
 =======
+
 The syntax for creating a textnetwork using the `prep_text_noun_phrases` function is very similar to the `prep_text` function but instead of outputing all words in each document, it only outputs nouns and nounphrases. This function accomplishes this by using the `phrasemachine` package, which requires a version of Java >7, or a Python backend with the Spacy package. Either way, the `prep_text_noun_phrases` package will take much longer than the `prep_text` function because it must perform part-of-speech tagging on each sentence within each document in the dataframe. But users may conclude that the added time is worth it if they belive nouns and noun phrases are more likely to describe the topical content of a document than other parts of speech. The defauly ngram length for noun phrases is set to 4, but the user may specify a different range using the max_ngram_length argument.
 
 ```r
