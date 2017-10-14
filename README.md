@@ -34,7 +34,7 @@ library(networkD3)
 
 ### Two-mode networks
 
-It is important to note that the textnet package constructs two-mode networks (aka affiliation, or bipartite networks). Such networks include two sets of nodes (vertices), and edges (links) are only created between nodes belonging to different sets. In textnet, one node set is always comprised of the words found across documents. The other node set is specified by the user and can include the documents themselves, or some meta data about those documents, such as the authors, publishers, dates, etc. These two node sets are extracted from the `textvar` and `groupvar` input parameters, described further below. 
+It is important to note that the textnet package constructs two-mode networks (aka affiliation, or bipartite networks). Such networks include two sets of nodes (vertices), and edges (links) are only created between nodes belonging to different sets. In textnet, one node set is always comprised of the words found across documents. The other node set is specified by the user and can include the documents themselves, or some meta data about those documents, such as the authors, publishers, dates, etc. These two node sets are extracted from the `textvar` and `groupvar` input parameters, described further below.
 
 To clarify this, let's take the example of a network where the first node set is words found in US newspaper headlines on July 20, 1969 (the first moon landing), and the second node set is the newspapers themselves. Here is a two-mode projection of this network:
 
@@ -55,7 +55,7 @@ With some reshaping of the data, this two-mode network can be projected in eithe
 
 ### Data format
 
-At present, the textnets package requires text to be inside a dataframe. Specifically, a dataframe where each row represents a document, and the text of each document is contained in a column, with other columns including document meta data. To get a better sense of this, let's take a look at some sample data provided by the sotu package in R. We will be using this data throughout the remained for the tutorial. 
+At present, the textnets package requires text to be inside a dataframe. Specifically, a dataframe where each row represents a document, and the text of each document is contained in a column, with other columns including document meta data. To get a better sense of this, let's take a look at some sample data provided by the sotu package in R. We will be using this data throughout the remained for the tutorial.
 
 ```r
 install.packages("sotu")
@@ -63,7 +63,7 @@ library(sotu)
 ```
 
 This data provides texts from The State of the Union Address, which is a speech given by the president of the United States each year to describe past accomplishments and future challenges facing the nation. It is a popular dataset in the field of Natural Language Processing because it provides a diverse range of language by different individuals over time.
-For our purposes, the data are ideal because they contain text for every State of the Union address, and meta data describing the name of the president who delivered the address, the date of delivery, and the president's party affiliation. 
+For our purposes, the data are ideal because they contain text for every State of the Union address, and meta data describing the name of the president who delivered the address, the date of delivery, and the president's party affiliation.
 
 The following code binds the text and meta data objects together to make a single dataframe. On the second line of code, we coerce `sotu$sotu_text` into a character vector, as textnets cannot accept factor variables at the moment.
 
@@ -72,7 +72,7 @@ sotu <- data.frame(cbind(sotu_text, sotu_meta), stringsAsFactors=FALSE)
 sotu$sotu_text <- as.character(sotu$sotu_text)
 ```
 
-Be sure to examine the format of this data, as yours will want to look something similar if you plan to analyze them using the textnets package. 
+Be sure to examine the format of this data, as yours will want to look something similar if you plan to analyze them using the textnets package.
 
 
 
@@ -94,10 +94,9 @@ The output of the `prep_text` function is a dataframe in tidytext style, where e
 sotu_text_data <- prep_text(sotu, "president", "sotu_text", node_type="docs", remove_stop_words=TRUE, stem=TRUE)
 ```
 
+The syntax for creating a text network using the `prep_text_noun_phrases` function is very similar to the `prep_text` function, but instead of outputing all words in each document, it only outputs nouns and nounphrases. Nouns are identified using the `phrasemachine` package, which requires a version of Java >7, or a Python backend with the Spacy package. Either way, the `prep_text_noun_phrases` package will take much longer than the `prep_text` function because it must perform part-of-speech tagging on each sentence within each document in the dataframe. But users may conclude that the added time is worth it if they belive nouns and noun phrases are more likely to describe the topical content of a document than other parts of speech.  
 
 The syntax for creating a text network using the `prep_text_noun_phrases` function is very similar to the `prep_text` function, but instead of outputing all words in each document, it only outputs nouns and nounphrases. Nouns are identified using the `phrasemachine` package, which requires a version of Java >7, or a Python backend with the Spacy package. Either way, the `prep_text_noun_phrases` package will take much longer than the `prep_text` function because it must perform part-of-speech tagging on each sentence within each document in the dataframe. But users may conclude that the added time is worth it if they belive nouns and noun phrases are more likely to describe the topical content of a document than other parts of speech.
-
-=======
 
 The syntax for creating a textnetwork using the `prep_text_noun_phrases` function is very similar to the `prep_text` function but instead of outputing all words in each document, it only outputs nouns and nounphrases. This function accomplishes this by using the `phrasemachine` package, which requires a version of Java >7, or a Python backend with the Spacy package. Either way, the `prep_text_noun_phrases` package will take much longer than the `prep_text` function because it must perform part-of-speech tagging on each sentence within each document in the dataframe. But users may conclude that the added time is worth it if they belive nouns and noun phrases are more likely to describe the topical content of a document than other parts of speech. The defauly ngram length for noun phrases is set to 4, but the user may specify a different range using the max_ngram_length argument.
 
