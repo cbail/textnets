@@ -38,6 +38,11 @@ It is important to note that the textnet package constructs two-mode networks (a
 
 To clarify this, let's take the example of a network where the first node set is words found in US newspaper headlines on July 20, 1969 (the first moon landing), and the second node set is the newspapers themselves. Here is a two-mode projection of this network:
 
+<div style="width:200px; height=200px">
+![](https://raw.github.com/cbail/textnets/master/figures/moonlanding_headlines.png)
+
+</div>
+
 <div style="width:500px; height=500px">
 ![](https://raw.github.com/cbail/textnets/master/figures/twomode.png)
 </div>
