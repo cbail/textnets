@@ -9,7 +9,7 @@ Though the idea to think about texts as networks of words is not entirely new, a
 
 ## Getting Started
 
-To begin using `textnets`, you'll need to install the current version of the package from Github. To do so, you'll need the R `devtools` package, if you don't have it already.
+To begin using textnets, you'll need to install the current version of the package from Github. To do so, you'll need the R devtools package, if you don't have it already.
 
 ```r
 install.packages("devtools")
@@ -34,22 +34,25 @@ library(networkD3)
 
 ### Two-mode networks
 
-It is important to note that the textnet package constructs two-mode networks (aka affiliation, or bipartite networks). Such networks include two sets of nodes (vertices), and edges (links) are only created between nodes belonging to different sets. In textnet, one node set is always comprised of the words found across documents. The other node set is specified by the user and can include the documents themselves, or some meta data about those documents, such as the authors, publishers, dates, etc. These two node sets are extracted from the `textvar` and `groupvar` input parameters, described further below.
+It is important to note that the textnet package constructs two-mode networks, also known as affiliation or bipartite networks. Such networks include two sets of nodes (vertices), and edges (links) are only created between nodes belonging to different sets. In textnets, one node set is always comprised of the words found across documents. The other is specified by the user and can include the documents themselves, or some meta data about those documents, such as the authors, publishers, dates, etc. These two node sets are extracted from the `textvar` and `groupvar` input parameters respectively, and are described further below.
 
-To clarify this, let's take the example of a network where the first node set is words found in US newspaper headlines on July 20, 1969 (the first moon landing), and the second node set is the newspapers themselves. Here is a two-mode projection of this network:
+To clarify two-mode networks, let's take the example of a network where the first node set is words found in US newspaper headlines on July 20, 1969 (the first moon landing), and the second node set is the newspapers themselves. That data would look something like this:
 
-<div style="width:375px; height=375px">
+<div style="width:450px; height=450px">
 ![](https://raw.github.com/cbail/textnets/master/figures/moonlanding_headlines.png)
-
 </div>
+
+</br>
+
+Here is a two-mode projection of this network. As you can see, edges are only drawn between newspapers and words (i.e. nodes belonging to different sets).
+
+
 
 <div style="width:500px; height=500px">
 ![](https://raw.github.com/cbail/textnets/master/figures/twomode.png)
 </div>
 
-As you can see, edges are only drawn between newspapers and words (i.e. nodes belonging to different sets). Newspapers are connected to a word if that word appears in it's headline.
-
-With some reshaping of the data, this two-mode network can be projected in either of its one-mode forms. That is, with either word nodes connected through the newspapers they share in common, or with newspapers connected through the words they share in common.
+With some reshaping of the data, this two-mode network can be projected in either of its one-mode forms. That is, with either words connected through the newspapers they share in common, or with newspapers connected through the words they share in common.
 
 <div style="width:700px; height=700px">
 
