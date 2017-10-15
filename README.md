@@ -3,13 +3,13 @@ R package for automated text analysis using network techniques.
 
 ## Overview
 
-There is growing interest in automated detection of latent themes in unstructured text data. Thus far, much attention has been given to topic models, but analyzing texts using the tools of network analysis is an interesting alternative. Though in social science we normally think about network analysis as describing relationships between people, it can also be applied to  relationships between words— for example, by linking words that co-occur in the same document, or that co-occur in documents written by the same author, in the same year, etc. Such an approach allows us to generate new, more intuitive visualizations of textual themes across documents, while also allowing us to employ cutting-edge community detection algorithms to identify themes in a manner that has various advantages over topic modeling, described in detail by Bail (2017) ["Combining Network Analysis and Natural Language Processing to Examine how Advocacy Organizations Stimulate Conversation on Social Media." Proceedings of the National Academy of Sciences. 113:42 11823-11828](http://www.pnas.org/content/113/42/11823.full.pdf?with-ds=yes).
+There is growing interest in automated detection of latent themes in unstructured text data. Thus far, much attention has been given to topic models, but analyzing texts using the tools of network analysis is an interesting alternative. In social science, we normally think about network analysis as describing relationships between people, but it can also be applied to  relationships between words— for example, by linking words that co-occur in the same document, or that co-occur in documents written by the same author, in the same year, etc. Such an approach allows us to generate new, more intuitive visualizations of textual themes across documents, while also allowing us to employ cutting-edge community detection algorithms to identify themes in a manner that has various advantages over topic modeling, described in detail by Bail (2017) ["Combining Network Analysis and Natural Language Processing to Examine how Advocacy Organizations Stimulate Conversation on Social Media." Proceedings of the National Academy of Sciences. 113:42 11823-11828](http://www.pnas.org/content/113/42/11823.full.pdf?with-ds=yes).
 
-Though the idea to think about texts as networks of words is not entirely new, advances in Natural Language Processing and community detection analysis have pushed things forward. The textnets package is an attempt to make these innovations widely accessible, and to encourage others to innovate further. The functions of the textnets package fall into four main categories: those that prepare texts for analysis, those that produce text networks, those that detect communities within these networks, and those that visualize the networks and their communities.
+Though the idea to think about texts as networks of words is not entirely new, advances in Natural Language Processing and community detection analysis have pushed things forward. The textnets package is an attempt to make these innovations widely accessible, and to encourage others to innovate further. The functions provided by the textnets package fall into four main categories: those that prepare texts for analysis, those that produce text networks, those that detect communities within these networks, and those that visualize the networks and communities.
 
 ## Getting Started
 
-To begin using the `textnets` package, you'll need to install the current version of the package from Github. To do so, you'll need the R "devtools" package, if you don't have it already.
+To begin using `textnets`, you'll need to install the current version of the package from Github. To do so, you'll need the R `devtools` package, if you don't have it already.
 
 ```r
 install.packages("devtools")
@@ -38,7 +38,7 @@ It is important to note that the textnet package constructs two-mode networks (a
 
 To clarify this, let's take the example of a network where the first node set is words found in US newspaper headlines on July 20, 1969 (the first moon landing), and the second node set is the newspapers themselves. Here is a two-mode projection of this network:
 
-<div style="width:200px; height=200px">
+<div style="width:375px; height=375px">
 ![](https://raw.github.com/cbail/textnets/master/figures/moonlanding_headlines.png)
 
 </div>
