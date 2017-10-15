@@ -1,7 +1,7 @@
 # textnets
 R package for automated text analysis using network techniques.
 
-## Overview
+### Overview
 
 There is growing interest in automated detection of latent themes in unstructured text data. Thus far, much attention has been given to topic models, but analyzing texts using the tools of network analysis is an interesting alternative. In social science, we normally think about network analysis as describing relationships between people, but it can also be applied to  relationships between words— for example, by linking words that co-occur in the same document, or that co-occur in documents written by the same author, in the same year, etc. Such an approach allows us to generate new, more intuitive visualizations of textual themes across documents, while also allowing us to employ cutting-edge community detection algorithms to identify themes in a manner that has various advantages over topic modeling, described in detail by Bail (2017) ["Combining Network Analysis and Natural Language Processing to Examine how Advocacy Organizations Stimulate Conversation on Social Media." Proceedings of the National Academy of Sciences. 113:42 11823-11828](http://www.pnas.org/content/113/42/11823.full.pdf?with-ds=yes).
 
@@ -82,12 +82,10 @@ sotu$sotu_text <- as.character(sotu$sotu_text)
 
 Here is what the data look like. Yours should look similar if you plan to analyze them using the textnets package.
 
+</br></br>
 
 
-
-
-
-# Prepare Text
+## Prepare Text
 
 The textnet package includes two functions to prepare texts for analysis. The `prep_text` function prepares texts for networks using all types of words, while the `prep_text_noun_phrases` prepares text for networks using only nouns and noun phrases. Users may prefer to create networks based on only nouns or noun phrases because previous studies have shown that such parts of speech are more useful in mapping the topical content of a text than other parts of speech, such as verbs or adjectives (e.g. Rule, Cointet, and Bearman 2015).
 
@@ -112,14 +110,19 @@ The syntax for creating a textnetwork using the `prep_text_noun_phrases` functio
 sotu_text_data_nouns <- prep_text_noun_phrases(sotu, "president", "sotu_text", node_type="docs")
 ```
 
-# Creating Text Networks
+</br></br>
+
+## Creating Text Networks
 
 The workhorse function within the `textnets` package is the `create_textnet` function. This function reads in an object created using the `prep_text` or `prep_text_noun_phrases` functions and outputs a weighted adjacency matrix, or a square matrix where the rows and columns correspond to either the names of the documents (if the user has specificed the `node_type="docs"` argument in the previous stage), or words (if the user has specified the `node_type="words` argument). The cells of the adjacency matrix are the sum of the term-frequency inverse-document frequency (TFIDF) for overlapping terms between two documents. This is the procedure described in Bail (2016).
 
 ```r
 sotu_text_network <- create_textnet(sotu_text_data, node_type="docs")
 ```
-# Analyzing Text Networks
+
+</br></br>
+
+## Analyzing Text Networks
 
 In order to group documents according to their similarity-- or in order to identify latent themese across texts-- users may wish to cluster documents or words within text networks. The `text_communities` function applies the Louvain community detection algorithm to do this, which automatically determines the number of clusters within a given network. The function outputs a dataframe with the cluster or "modularity" class to which each document or word has been assigned.
 
@@ -132,7 +135,9 @@ In order to further understand which terms are driving the clustering of documen
 top_words_modularity_classes <- interpret(sotu_text_network, sotu_text_data)
 ```
 
-# Centrality Measures
+</br></br>
+
+## Centrality Measures
 
 Often in social networks, researchers wish to calculate measures of influence or centrality in order to predict whether or not occupying brokerage positions can create greater social rewards for individuals. As Bail (2016) shows, the same logic can be applied to text networks in order to develop a measure of "cultural betweenness" or the extent to which a given document or word are in between clusters of other words. To calculate cultural betweennes as well as other centrality measures, `textnet` users can use the `centrality` measure.
 
@@ -140,7 +145,10 @@ Often in social networks, researchers wish to calculate measures of influence or
 text_centrality <- centrality(sotu_text_network)
 ```
 
-# Visualizing Text Networks
+</br></br>
+
+
+## Visualizing Text Networks
 
 Finally, the textnets package includes two functions to visualize text networks created in the previous steps. The `visualize` function creates a network diagram where nodes are colored by their cluster or modularity class (see previous section). In many cases, text networks will be very dense (that is, there will be a very large number of edges because most documents share at least one word). Visualizing text networks therefore creates inherent challenges, because such dense networks are very cluttered. To make text networks more readable, the `visualize` function requires the user to specify a `prune_cut` argument, which specifies which quantile of edges should be kept for the visualization. For example, if the user sets `prune_cut=.9` only edges that have a weight in the 90th percentile or above will be kept. The `visualize` function also includes an argument that determines which nodes will be labeled, since network visualizations with too many node labels can be difficult to interpret. The user specifies an argument called `label_degree_cut` which specifies the degree, or number of each connections, that nodes which are labeled should have. For example, if the user only wants nodes that have at least 3 connections to other nodes to be labeled (and only wants to visualize edges with a weight that is greater than the 50th percentile), she or he would use the following code:
 
@@ -156,7 +164,10 @@ The final function in the textnets package is the `visualize_d3js` function. Thi
 ```r
 visualize_d3js(sotu_text_network, .50)
 ```
-# References
+
+</br></br>
+
+### References
 
 Bail, Christopher A. 2016. "Combining Network Analysis and Natural Language Processing to Examine how Ad-
 vocacy Organizations Stimulate Conversation on Social Media." Proceedings of the National Academy of Sciences, 113:42 11823-11828
