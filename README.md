@@ -39,7 +39,7 @@ It is important to note that the textnet package constructs two-mode networks (a
 To clarify this, let's take the example of a network where the first node set is words found in US newspaper headlines on July 20, 1969 (the first moon landing), and the second node set is the newspapers themselves. Here is a two-mode projection of this network:
 
 <div style="width:500px; height=500px">
-![](figures/twomode.png)
+![](https://raw.github.com/cbail/textnets/master/figures/twomode.png)
 </div>
 
 As you can see, edges are only drawn between newspapers and words (i.e. nodes belonging to different sets). Newspapers are connected to a word if that word appears in it's headline.
@@ -48,7 +48,7 @@ With some reshaping of the data, this two-mode network can be projected in eithe
 
 <div style="width:700px; height=700px">
 
-![](figures/bothmodes.png)
+![](https://raw.github.com/cbail/textnets/master/figures/bothmodes.png)
 
 </div>
 
@@ -140,8 +140,7 @@ Finally, the textnets package includes two functions to visualize text networks 
 visualize(sotu_text_network, .50, label_degree_cut=3)
 ```
 
-![Plot](https://raw.github.com/cbail/textnets/master/SOTU_Plot.png)
-
+![Plot](https://raw.github.com/cbail/textnets/master/figures/SOTU_Plot.png)
 
 
 The final function in the textnets package is the `visualize_d3js` function. This function outputs an interactive javascript visualization of the text network, where the user can mouse over each node in order to reveal its node label. Once again, nodes are coloured by their modularity class, and the user must sepcify a `prune_cut`argument:
