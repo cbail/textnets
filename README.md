@@ -63,24 +63,24 @@ With some reshaping of the data, this two-mode network can be projected in eithe
 
 ### Data format
 
-At present, the textnets package requires text to be inside a dataframe. Specifically, a dataframe where each row represents a document, and the text of each document is contained in a column, with other columns including document meta data. To get a better sense of this, let's take a look at some sample data provided by the sotu package in R. We will be using this data throughout the remained for the tutorial.
+At present, the textnets package requires text to be inside a dataframe. Specifically, a dataframe where each row represents a document, and the text of each document is contained in a column, with other columns including document meta data. To get a better sense of this, let's take a look at some sample data provided by the sotu package in R. We will be using this data throughout the remainder of the tutorial.
 
 ```r
 install.packages("sotu")
 library(sotu)
 ```
 
-This data provides texts from The State of the Union Address, which is a speech given by the president of the United States each year to describe past accomplishments and future challenges facing the nation. It is a popular dataset in the field of Natural Language Processing because it provides a diverse range of language by different individuals over time.
+The sotu data includes texts from The State of the Union Address, which is a speech given by the president of the United States each year to describe past accomplishments and future challenges facing the nation. It is a popular dataset in the field of Natural Language Processing because it provides a diverse range of language by different individuals over time.
 For our purposes, the data are ideal because they contain text for every State of the Union address, and meta data describing the name of the president who delivered the address, the date of delivery, and the president's party affiliation.
 
-The following code binds the text and meta data objects together to make a single dataframe. On the second line of code, we coerce `sotu$sotu_text` into a character vector, as textnets cannot accept factor variables at the moment.
+The following code binds the text and meta data objects together to make a single dataframe. On the second line of code, we coerce `sotu$sotu_text` into a character vector, as textnets cannot accept factor variables.
 
 ```r
 sotu <- data.frame(cbind(sotu_text, sotu_meta), stringsAsFactors=FALSE)
 sotu$sotu_text <- as.character(sotu$sotu_text)
 ```
 
-Be sure to examine the format of this data, as yours will want to look something similar if you plan to analyze them using the textnets package.
+Here is what the data look like. Yours should look similar if you plan to analyze them using the textnets package.
 
 
 
