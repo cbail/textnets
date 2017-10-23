@@ -5,7 +5,7 @@
 # documents themselves. The function a) removes URLs; b) removes stop words, and c)
 # stems words, and d) creates a summarized tidy text format (where each row of the # dataset describes the prevalence of each word within the document)
 
-prep_text <-function(textdata, docname, textvar, node_type=c("docs","words"),
+prep_text <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
                            remove_url = FALSE, remove_stop_words=FALSE, stem=FALSE) {
 
   library(dplyr)
@@ -20,7 +20,7 @@ prep_text <-function(textdata, docname, textvar, node_type=c("docs","words"),
 
 
   textdata<-textdata %>%
-    select_(docname,textvar) %>%
+    select_(groupvar,textvar) %>%
 
     # #tidy text
     unnest_tokens_("word", textvar)
@@ -39,9 +39,9 @@ prep_text <-function(textdata, docname, textvar, node_type=c("docs","words"),
 
   textdata<-textdata %>%
     #now change names to document and term for consistency
-    rename_(document=docname)
+    rename_(document=groupvar)
 
-  if (node_type=="docs"){
+  if (node_type=="groups"){
     #count terms by document
     textdata<-textdata %>%
       group_by(document) %>%
