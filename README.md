@@ -99,7 +99,7 @@ At present the `prep_text` function also includes three optional arguments. The 
 The output of the `prep_text` function is a dataframe in tidytext style, where each row of the dataframe describes a word, the document that it appears in, and its overall frequency within that document. The following code reads in the State of the Union Data in order to create a text network where the nodes are presidents, and the edges are overlap in the language they use. In this example we also remove stop words and stem.
 
 ```r
-sotu_text_data <- prep_text(sotu, textvar="sotu_text", groupvar="president", node_type="docs", remove_stop_words=TRUE, stem=TRUE)
+sotu_text_data <- prep_text(sotu, textvar="sotu_text", groupvar="president", node_type="groups", remove_stop_words=TRUE, stem=TRUE)
 ```
 
 The syntax for creating a text network using the `prep_text_noun_phrases` function is the same as the `prep_text` function, but instead of outputing all words in each document, it only outputs nouns and nounphrases. Nouns are identified using the `phrasemachine` package, which requires a version of Java >7, or a Python backend with the Spacy package. Either way, the `prep_text_noun_phrases` package will take much longer than the `prep_text` function because it must perform part-of-speech tagging on each sentence within each document in the provided dataframe. But users may conclude that the added time is worth it if they belive nouns and noun phrases are more likely to describe the topical content of a document than other parts of speech. The default ngram length for noun phrases is set to 4, but the user may specify a different range using the max_ngram_length argument.
@@ -112,10 +112,10 @@ sotu_text_data_nouns <- prep_text_noun_phrases(sotu, "president", "sotu_text", n
 
 ## Creating Text Networks
 
-The workhorse function within the textnets package is the `create_textnet` function. This function reads in an object created using the `prep_text` or `prep_text_noun_phrases` functions and outputs a weighted adjacency matrix, or a square matrix where the rows and columns correspond to either the names of the group variable (if the user has specificed the `node_type="group"` argument in the previous stage), or words (if the user has specified the `node_type="words` argument). The cells of the adjacency matrix are the sum of the term-frequency inverse-document frequency (TFIDF) for overlapping terms between two documents. This is the procedure described in Bail (2016).
+The workhorse function within the textnets package is the `create_textnet` function. This function reads in an object created using the `prep_text` or `prep_text_noun_phrases` functions and outputs a weighted adjacency matrix, or a square matrix where the rows and columns correspond to either the names of the group variable (if the user specificed `node_type="group"` in the previous stage), or words (if the user specified `node_type="words"`). The cells of the adjacency matrix are the sum of the term-frequency inverse-document frequency (TFIDF) for overlapping terms between two documents. This is the procedure described in Bail (2016).
 
 ```r
-sotu_text_network <- create_textnet(sotu_text_data, node_type="docs")
+sotu_text_network <- create_textnet(sotu_text_data, node_type="groups")
 ```
 
 </br></br>
