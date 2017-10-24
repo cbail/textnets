@@ -28,9 +28,9 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
   if (node_type=="groups"){
     #count terms by document
     textdata<-textdata %>%
-      rename_(document=groupvar)  %>%
+      rename_(group=groupvar)  %>%
       # # # #count terms by document
-      group_by(document) %>%
+      group_by(group) %>%
       count(word, sort = FALSE) %>%
       rename(count=n)
     return(textdata)
@@ -38,9 +38,9 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
   }
   if (node_type=="words"){
     textdata<-textdata %>%
-      rename_(document=groupvar)  %>%
-      # # # #count terms by document
-      group_by(document) %>%
+      rename_(group=groupvar)  %>%
+      # # # #count terms by group
+      group_by(group) %>%
       count(word, sort = FALSE) %>%
       rename(count=n)
     return(textdata)

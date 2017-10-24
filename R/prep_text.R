@@ -39,12 +39,12 @@ prep_text <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
 
   textdata<-textdata %>%
     #now change names to document and term for consistency
-    rename_(document=groupvar)
+    rename_(group=groupvar)
 
   if (node_type=="groups"){
     #count terms by document
     textdata<-textdata %>%
-      group_by(document) %>%
+      group_by(group) %>%
       count(word, sort = FALSE) %>%
       rename(count=n)
   }
@@ -52,7 +52,7 @@ prep_text <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
   if (node_type=="words"){
     textdata<-textdata %>%
       group_by(word) %>%
-      count(document, sort = FALSE) %>%
+      count(group, sort = FALSE) %>%
       rename(count=n)
   }
 
