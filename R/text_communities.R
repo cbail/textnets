@@ -8,6 +8,6 @@ text_communities<-function(text_network){
   communities<-cluster_louvain(text_network)
   results<-data.frame(cbind(communities$names, communities$membership),
                       stringsAsFactors = FALSE)
-  names(results)<-c("document","modularity_class")
+  names(results)<-c("group","modularity_class")
   return(results)
 }
