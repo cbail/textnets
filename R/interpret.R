@@ -8,11 +8,11 @@ interpret<-function(text_network, tidytext){
   #communities<-optimal.community(text_network)
   results<-data.frame(cbind(communities$names, communities$membership),
                       stringsAsFactors = FALSE)
-  names(results)<-c("document","modularity_class")
+  names(results)<-c("group","modularity_class")
   #now merge with tidy text dataframe
 
   tfidf_text<-tidytext %>%
-    bind_tf_idf(document, word, count)
+    bind_tf_idf(group, word, count)
 
   inner_join(tfidf_text, results) %>%
     #summarize words by modularity class
