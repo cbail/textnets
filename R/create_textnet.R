@@ -9,10 +9,6 @@
 
 create_textnet<-function(tidytextobject, node_type=c("groups","words")){
 
-  library(reshape2)
-  library(igraph)
-  library(tidytext)
-
   if(node_type=="groups"){
     for_adjacency<-tidytextobject %>%
       #calculate tfidf
