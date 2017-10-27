@@ -1,7 +1,5 @@
 interpret<-function(text_network, tidytext){
 
-  library(tidytext)
-  library(igraph)
   #first create communities (either louvain or fast.greedy)
   communities<-cluster_louvain(text_network)
   #optimal modularity kept crashing :(

@@ -9,7 +9,6 @@
 
 visualize<-function(text_network, prune_cut, label_degree_cut=0, betweenness=FALSE){
 
-  library(ggraph)
   #prune edges
   pruned <- delete.edges(text_network, E(text_network) [ weight < quantile(weight, prune_cut) ])
   #make degree for labelling most popular nodes

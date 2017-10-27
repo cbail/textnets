@@ -8,11 +8,6 @@
 prep_text <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
                            remove_url = FALSE, remove_stop_words=FALSE, stem=FALSE) {
 
-  library(dplyr)
-  library(tidytext)
-  library(stringr)
-  library(SnowballC)
-
   #remove URLS
   if (remove_url) {
     textdata[[textvar]]<-stringr::str_replace_all(textdata[[textvar]], "https?://t\\.co/[A-Za-z\\d]+|https?://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https?", "")

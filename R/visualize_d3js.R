@@ -6,7 +6,7 @@
 
 visualize_d3js<-function(text_network, prune_cut){
   pruned <- delete.edges(text_network, E(text_network) [ weight < quantile(weight, prune_cut) ])
-  library(networkD3)
+
   lc <- cluster_louvain(pruned)
   members <- membership(lc)
   text_d3<-igraph_to_networkD3(pruned, group=members, what = "both")

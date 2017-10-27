@@ -1,12 +1,6 @@
 prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("groups","words"), max_ngram_length = 4,
                                         remove_url=TRUE) {
 
-  library(dplyr)
-  library(tidytext)
-  library(stringr)
-  library(SnowballC)
-  library(phrasemachine)
-
   #remove URLS
   if (remove_url) {
     textdata[[textvar]]<-stringr::str_replace_all(textdata[[textvar]], "https?://t\\.co/[A-Za-z\\d]+|https?://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https?", "")
