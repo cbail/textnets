@@ -55,7 +55,7 @@ Here is a two-mode projection of this network. As you can see, edges are only dr
 ![](https://raw.github.com/cbail/textnets/master/figures/twomode.png)
 </div>
 
-With some reshaping of the data, this two-mode network can be projected in either of its one-mode forms. That is, with either words connected through the newspapers they share in common, or with newspapers connected through the words they share in common.
+With some reshaping of the data, this two-mode network can be projected in either of its one-mode forms. That is, with either words connected through the newspapers they share in common, or with newspapers connected through the words they share in common. Importantly, these two projections represent the `node_type="words"` and `node_type="groups"` parameter settings respectively, which are specified in the `prep_texts` function, described further below.
 
 <div style="width:700px; height=700px">
 
@@ -105,7 +105,7 @@ sotu_text_data <- prep_text(sotu, textvar="sotu_text", groupvar="president", nod
 The syntax for using the `prep_text_noun_phrases` function is the same as the `prep_text` function, but instead of outputing all words in each document, it only outputs nouns and nounphrases. Nouns are identified using the `phrasemachine` package, which requires a version of Java >7, or a Python backend with the Spacy package. Either way, the `prep_text_noun_phrases` package will take much longer than the `prep_text` function because it must perform part-of-speech tagging on each sentence within each document in the provided dataframe. But users may conclude that the added time is worth it if they belive nouns and noun phrases are more likely to describe the topical content of a document than other parts of speech. The default ngram length for noun phrases is set to 4, but the user may specify a different range using the max_ngram_length argument.
 
 ```r
-sotu_text_data_nouns <- prep_text_noun_phrases(sotu, "president", "sotu_text", node_type="groups")
+sotu_text_data_nouns2 <- prep_text_noun_phrases(sotu[1:10,], "president", "sotu_text", node_type="groups", top_phrases=FALSE)
 ```
 
 </br></br>

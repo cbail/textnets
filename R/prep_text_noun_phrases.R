@@ -1,4 +1,4 @@
-prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("groups","words"), max_ngram_length = 4,
+prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("groups","words"), top_phrases=TRUE, max_ngram_length = 4,
                                         remove_url=TRUE) {
 
   #remove URLS
@@ -30,6 +30,7 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
     return(textdata)
 
   }
+  
   if (node_type=="words"){
     textdata<-textdata %>%
       rename_(group=groupvar)  %>%
@@ -39,6 +40,26 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
       rename(count=n)
     return(textdata)
   }
+  
+  if (top_phrases==TRUE){
+    phrases <- textdata %>%
+      filter(grepl("_",word))
+    phrases$group <- NULL
+    
+    phrases <- phrases %>%
+      group_by(word) %>%
+      summarise(count = sum(count)) %>%
+      arrange(desc(count))
+    
+    top.phrases <- filter(phrases, count >= phrases$count[1000])
+    
+    textdata <- textdata %>%
+      filter(!grepl("_",word) | word %in% top.phrases$word)
+    return(textdata)
+  }
 
   return(textdata)
 }
+
+
+
