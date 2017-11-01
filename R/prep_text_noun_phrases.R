@@ -29,7 +29,7 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
       rename(count=n)
   }
   
-  if (node_type){
+  if (node_type=="words"){
     textdata<-textdata %>%
       rename_(group=groupvar)  %>%
       # # # #count terms by group
