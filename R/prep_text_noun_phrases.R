@@ -27,18 +27,15 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
       group_by(group) %>%
       count(word, sort = FALSE) %>%
       rename(count=n)
-    return(textdata)
-
   }
   
-  if (node_type=="words"){
+  if (node_type){
     textdata<-textdata %>%
       rename_(group=groupvar)  %>%
       # # # #count terms by group
       group_by(group) %>%
       count(word, sort = FALSE) %>%
       rename(count=n)
-    return(textdata)
   }
   
   if (top_phrases==TRUE){
