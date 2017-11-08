@@ -12,7 +12,9 @@ prep_text <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
   if (remove_url) {
     textdata[[textvar]]<-stringr::str_replace_all(textdata[[textvar]], "https?://t\\.co/[A-Za-z\\d]+|https?://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https?", "")
   }
-
+  
+  # remove extra whitespaces
+  textdata[[textvar]] <- gsub("\\s+"," ",textdata[[textvar]])
 
   textdata<-textdata %>%
     select_(groupvar,textvar) %>%
