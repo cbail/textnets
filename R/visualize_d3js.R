@@ -4,7 +4,7 @@
 # nodes to figure out which documents they represent.
 
 
-visualize_d3js<-function(text_network, prune_cut, height = NULL, width = NULL,){
+visualize_d3js<-function(text_network, prune_cut, height = NULL, width = NULL){
   pruned <- delete.edges(text_network, E(text_network) [ weight < quantile(weight, prune_cut) ])
 
   lc <- cluster_louvain(pruned)
