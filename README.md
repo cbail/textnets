@@ -169,6 +169,22 @@ The final function in the textnets package is the `visualize_d3js` function. Thi
 visualize_d3js(sotu_text_network, .50)
 ```
 
+To save this as an html file for sharing with others or in a presentation, the following can be used. The `height` and `width` parameters are set in pixels, and `bound=TRUE` will prevent the network from dispersing beyond these dimensions. While this may help viewers to see all nodes, it will also cause nodes to cluster at the limits of height and wigth. This can be prevented by increasing the `charge` parameters, which specifies the strength of node repulsion (negative value) or attraction (positive value). The `zoom` parameter indicates whether to allow users to zoom in and out of the network, which can be especially helpful in large networks for exploring clusters.
+
+```r
+library(htmlwidgets)
+vis <- visualize_d3js(sotu_text_network, 
+                      prune_cut=.50,
+                      height=1000,
+                      width=1400,
+                      bound=FALSE,
+                      zoom=TRUE,
+                      charge=-30)
+saveWidget(vis, "sotu_textnet.html")
+
+
+
+```
 </br></br>
 
 ### References
