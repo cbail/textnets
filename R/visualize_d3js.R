@@ -4,7 +4,7 @@
 # nodes to figure out which documents they represent.
 
 
-visualize_d3js<-function(text_network, prune_cut, height = NULL, width = NULL){
+visualize_d3js<-function(text_network, prune_cut, height = NULL, width = NULL, bound = FALSE, zoom = FALSE){
   pruned <- delete.edges(text_network, E(text_network) [ weight < quantile(weight, prune_cut) ])
 
   lc <- cluster_louvain(pruned)
@@ -12,6 +12,6 @@ visualize_d3js<-function(text_network, prune_cut, height = NULL, width = NULL){
   text_d3<-igraph_to_networkD3(pruned, group=members, what = "both")
   forceNetwork(Links = text_d3$links, Nodes = text_d3$nodes,
                Source = 'source', Target = 'target', NodeID = 'name',
-               Group="group", height = height, width = width)
+               Group="group", height = height, width = width, bounded = bound, zoom = zoom)
 
 }
