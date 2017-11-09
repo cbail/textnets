@@ -6,11 +6,15 @@
 # stems words, and d) creates a summarized tidy text format (where each row of the # dataset describes the prevalence of each word within the document)
 
 prep_text <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
-                           remove_url = FALSE, remove_stop_words=FALSE, stem=FALSE) {
+                           remove_url = FALSE, remove_stop_words=FALSE, stem=FALSE, remove_numbers=FALSE) {
 
   #remove URLS
   if (remove_url) {
     textdata[[textvar]]<-stringr::str_replace_all(textdata[[textvar]], "https?://t\\.co/[A-Za-z\\d]+|https?://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https?", "")
+  }
+  
+  if (remove_numbers) {
+    textdata[[textvar]]<-gsub("\\b\\d+\\b", "",textdata[[textvar]])
   }
   
   # remove extra whitespaces
