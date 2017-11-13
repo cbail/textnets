@@ -16,7 +16,7 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
       ungroup  
   }
   
-  if (remove_url === FALSE) {
+  if (remove_url == FALSE) {
     textdata<-textdata %>%
       select_(groupvar,textvar)%>%
       #tidy text
