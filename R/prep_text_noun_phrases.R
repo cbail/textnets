@@ -1,9 +1,14 @@
-prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("groups","words"), top_phrases=TRUE, max_ngram_length = 4,
+prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("groups","words"), top_phrases=TRUE, max_ngram_length = 4, remove_numbers=FALSE,
                                         remove_url=TRUE) {
 
   #remove URLS
   if (remove_url) {
     textdata[[textvar]]<-stringr::str_replace_all(textdata[[textvar]], "https?://t\\.co/[A-Za-z\\d]+|https?://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https?", "")
+  }
+  
+  #remove numbers
+  if (remove_numbers) {
+    textdata[[textvar]]<-gsub("\\b\\d+\\b", "",textdata[[textvar]])
   }
 
   textdata<-textdata %>%
@@ -48,8 +53,8 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
       summarise(count = sum(count)) %>%
       arrange(desc(count))
     
-    if (nrow(top.phrases) > 1000){
-      phrases <- top_phrasesfilter(phrases, count >= phrases$count[1000])
+    if (nrow(phrases) > 1000){
+      phrases <- filter(phrases, count >= phrases$count[1000])
     }
     
     textdata <- textdata %>%

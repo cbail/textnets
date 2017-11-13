@@ -23,8 +23,8 @@ prep_text <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
   textdata<-textdata %>%
     select_(groupvar,textvar) %>%
 
-    # #tidy text
-    unnest_tokens_("word", textvar)
+  # #tidy text
+  unnest_tokens_("word", textvar)
 
   if (remove_stop_words){
     data("stop_words")
