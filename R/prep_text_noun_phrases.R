@@ -3,30 +3,21 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
 
   #remove URLS
   if (remove_url) {
-    textdata<-textdata %>%
-      select_(groupvar,textvar)%>%
-      #remove all URLS
-      mutate_at(textvar, funs(str_replace_all(., "https?://t\\.co/[A-Za-z\\d]+|https?://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https?", ""))) %>%
-      #tidy text
-      mutate_at(textvar, funs(phrasemachine(., maximum_ngram_length = max_ngram_length))) %>%
-      group_by_(groupvar) %>%
-      mutate_at(textvar, funs(paste0(unlist(.),collapse=" "))) %>%
-      unnest_tokens_("word", textvar)  %>%
-      #  #now change names to document and term for consistency
-      ungroup  
+    textdata[[textvar]]<-stringr::str_replace_all(textdata[[textvar]], "https?://t\\.co/[A-Za-z\\d]+|https?://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https?", "")
   }
-  
-  if (remove_url == FALSE) {
-    textdata<-textdata %>%
-      select_(groupvar,textvar)%>%
-      #tidy text
-      mutate_at(textvar, funs(phrasemachine(., maximum_ngram_length = max_ngram_length))) %>%
-      group_by_(groupvar) %>%
-      mutate_at(textvar, funs(paste0(unlist(.),collapse=" "))) %>%
-      unnest_tokens_("word", textvar)  %>%
-      #  #now change names to document and term for consistency
-      ungroup  
-  }
+
+  textdata<-textdata %>%
+    select_(groupvar,textvar)%>%
+    #remove all URLS
+    #mutate_at(textvar, funs(str_replace_all(., "https?://t\\.co/[A-Za-z\\d]+|https?://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https?", ""))) %>%
+    #tidy text
+    mutate_at(textvar, funs(phrasemachine(., maximum_ngram_length = max_ngram_length))) %>%
+    group_by_(groupvar) %>%
+    mutate_at(textvar, funs(paste0(unlist(.),collapse=" "))) %>%
+    unnest_tokens_("word", textvar)  %>%
+    #  #now change names to document and term for consistency
+    ungroup
+
 
   if (node_type=="groups"){
     #count terms by document
@@ -57,10 +48,13 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
       summarise(count = sum(count)) %>%
       arrange(desc(count))
     
-    top.phrases <- filter(phrases, count >= phrases$count[1000])
+    if (nrow(top.phrases) > 1000){
+      phrases <- top_phrasesfilter(phrases, count >= phrases$count[1000])
+    }
     
     textdata <- textdata %>%
-      filter(!grepl("_",word) | word %in% top.phrases$word)
+      filter(!grepl("_",word) | word %in% phrases$word)
+    
     return(textdata)
   }
 
