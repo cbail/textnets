@@ -10,6 +10,10 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
   if (remove_numbers) {
     textdata[[textvar]]<-gsub("\\b\\d+\\b", "",textdata[[textvar]])
   }
+  
+  #remove extra whitespace
+  textdata[[textvar]] <- gsub("\\s+"," ",textdata[[textvar]])
+  
 
   textdata<-textdata %>%
     select_(groupvar,textvar)%>%
