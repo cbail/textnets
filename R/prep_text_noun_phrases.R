@@ -47,6 +47,17 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
       rename(count=n)
   }
   
+  # Remove leading and trailing underscores
+  textdata <- textdata %>%
+    rowwise() %>% 
+    mutate(word = mysub("[ _]+$", mysub("^[ _]+", word))) %>%
+    ungroup() %>%
+    group_by(group, word) %>%
+    mutate(count = sum(count)) %>%
+    distinct()
+
+  
+  # Filter to only the top 1000 phrases
   if (top_phrases==TRUE){
     phrases <- textdata %>%
       filter(grepl("_",word))
