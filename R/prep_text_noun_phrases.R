@@ -1,5 +1,7 @@
-prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("groups","words"), top_phrases=TRUE, max_ngram_length = 4, remove_numbers=FALSE,
-                                        remove_url=TRUE) {
+prep_text_noun_phrases <-function(textdata, groupvar, textvar, 
+                                  node_type=c("groups","words"), n_return = 1000,
+                                  top_phrases=TRUE, max_ngram_length = 4, 
+                                  remove_numbers=FALSE, remove_url=TRUE) {
 
   #remove URLS
   if (remove_url) {
@@ -14,7 +16,12 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
   #remove extra whitespace
   textdata[[textvar]] <- gsub("\\s+"," ",textdata[[textvar]])
   
-
+  #remove texts that are entirely empty
+  message(paste(as.character(nrow(filter(textdata, grepl("^\\s*$", textdata[[textvar]]))))), ' documents were removed because they are empty.')
+  textdata <- textdata %>%
+    filter(!grepl("^\\s*$", textvar))
+  
+  
   textdata<-textdata %>%
     select_(groupvar,textvar)%>%
     #remove all URLS
@@ -74,10 +81,8 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar, node_type=c("grou
     
     textdata <- textdata %>%
       filter(!grepl("_",word) | word %in% phrases$word)
-    
-    return(textdata)
   }
-
+  
   return(textdata)
 }
 
