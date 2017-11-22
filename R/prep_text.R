@@ -23,7 +23,8 @@ prep_text <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
   #remove texts that are entirely empty
   message(paste(as.character(nrow(filter(textdata, grepl("^\\s*$", textdata[[textvar]]))))), ' documents were removed because they are empty.')
   textdata <- textdata %>%
-    filter(!grepl("^\\s*$", textvar))
+    filter(!grepl("^\\s*$", textvar)) %>%
+    filter(textvar != '')
   
   textdata<-textdata %>%
     select_(groupvar,textvar) %>%
