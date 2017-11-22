@@ -20,9 +20,14 @@ prep_text <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
   # remove extra whitespaces
   textdata[[textvar]] <- gsub("\\s+"," ",textdata[[textvar]])
 
+  #remove texts that are entirely empty
+  message(paste(as.character(nrow(filter(textdata, grepl("^\\s*$", textdata[[textvar]]))))), ' documents were removed because they are empty.')
+  textdata <- textdata %>%
+    filter(!grepl("^\\s*$", textvar))
+  
   textdata<-textdata %>%
     select_(groupvar,textvar) %>%
-
+    
   # #tidy text
   unnest_tokens_("word", textvar)
 
