@@ -19,8 +19,8 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar,
   #remove texts that are entirely empty
   message(paste(as.character(nrow(filter(textdata, grepl("^\\s*$", textdata[[textvar]]))))), ' documents were removed because they are empty.')
   textdata <- textdata %>%
-    filter(!grepl("^\\s*$", textvar)) %>%
-    filter(textvar != '')
+    filter_(!grepl("^\\s*$", textvar)) %>%
+    filter_(textvar != '')
   
   
   textdata<-textdata %>%
