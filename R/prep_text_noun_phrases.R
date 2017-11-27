@@ -18,15 +18,11 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar,
   
   #remove texts that are entirely empty
   message(paste(as.character(nrow(filter(textdata, grepl("^\\s*$", textdata[[textvar]]))))), ' documents were removed because they are empty.')
-  textdata <- textdata %>%
-    filter_(!grepl("^\\s*$", textvar)) %>%
-    filter_(textvar != '')
   
+  textdata <- filter(textdata, !grepl("^\\s*$", textdata[[textvar]])) 
   
   textdata<-textdata %>%
     select_(groupvar,textvar)%>%
-    #remove all URLS
-    #mutate_at(textvar, funs(str_replace_all(., "https?://t\\.co/[A-Za-z\\d]+|https?://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https?", ""))) %>%
     #tidy text
     mutate_at(textvar, funs(phrasemachine(., maximum_ngram_length = max_ngram_length))) %>%
     group_by_(groupvar) %>%
@@ -56,6 +52,7 @@ prep_text_noun_phrases <-function(textdata, groupvar, textvar,
   }
   
   # Remove leading and trailing underscores
+  mysub <- function(re, x) sub(re, "", x, perl = TRUE)
   textdata <- textdata %>%
     rowwise() %>% 
     mutate(word = mysub("[ _]+$", mysub("^[ _]+", word))) %>%

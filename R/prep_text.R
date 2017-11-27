@@ -1,4 +1,4 @@
-#This prep_text function reads in a dataframe and requires two variable names
+# This prep_text function reads in a dataframe and requires two variable names
 # one that describes the document name, and one that describes the text of
 # the document. The node_type argument describes whether the user wants to
 # create a network where the nodes are words within a document, or the nodes are the
@@ -22,15 +22,13 @@ prep_text <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
 
   #remove texts that are entirely empty
   message(paste(as.character(nrow(filter(textdata, grepl("^\\s*$", textdata[[textvar]]))))), ' documents were removed because they are empty.')
-  textdata <- textdata %>%
-    filter_(!grepl("^\\s*$", textvar)) %>%
-    filter_(textvar != '')
+
+  textdata <- filter(textdata, !grepl("^\\s*$", textdata[[textvar]])) 
   
-  textdata<-textdata %>%
+  textdata <- textdata %>%
     select_(groupvar,textvar) %>%
-    
-  # #tidy text
-  unnest_tokens_("word", textvar)
+    #tidy text
+    unnest_tokens_("word", textvar)
 
   if (remove_stop_words){
     data("stop_words")
