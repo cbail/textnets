@@ -38,26 +38,24 @@ prep_text <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
 
   if (stem){
     textdata<-textdata %>%
-      #stem
       mutate_at("word", funs(wordStem((.), language="en")))
   }
 
-  textdata<-textdata %>%
-    #now change names to document and term for consistency
-    rename(group=groupvar)
+  textdata <- textdata %>%
+    rename_(group = c(groupvar))
 
   if (node_type=="groups"){
     #count terms by document
     textdata<-textdata %>%
       group_by(group) %>%
-      count(word, sort = FALSE) %>%
+      count(word) %>%
       rename(count=n)
   }
 
   if (node_type=="words"){
     textdata<-textdata %>%
       group_by(word) %>%
-      count(group, sort = FALSE) %>%
+      count(group) %>%
       rename(count=n)
   }
 
