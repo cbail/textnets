@@ -1,6 +1,10 @@
 # textnets
 R package for automated text analysis using network techniques.
 
+<div style="width:700px; height=700px">
+
+![](https://raw.github.com/cbail/textnets/master/figures/brumaire.png)
+
 ### Overview
 
 There is growing interest in automated detection of latent themes in unstructured text data. Though topic models have become a popular choice for such tasks, the textnets package provides an alternative technique that synthesizes recent advances in network analysis/graph theory and natural language processing which has several significant advantages over conventional "bag of words" models.
