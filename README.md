@@ -3,18 +3,22 @@ R package for automated text analysis using network techniques.
 
 ### Overview
 
-There is growing interest in automated detection of latent themes in unstructured text data. Thus far, much attention has been given to topic models, but analyzing texts using the tools of network analysis is an interesting alternative. In social science, we normally think about network analysis as describing relationships between people, but network analysis can also be applied to relationships between words. For example, words could be linked by their co-occurrence in the same document, or in documents written by the same author, or in the same year, etc. Such an approach allows for new, more intuitive visualizations of textual themes across documents, while also openning the opportunity to employ cutting-edge community detection algorithms to identify themes in a manner that has various advantages over topic modeling, described in detail by Bail (2017) ["Combining Network Analysis and Natural Language Processing to Examine how Advocacy Organizations Stimulate Conversation on Social Media." Proceedings of the National Academy of Sciences. 113:42 11823-11828](http://www.pnas.org/content/113/42/11823.full.pdf?with-ds=yes).
+There is growing interest in automated detection of latent themes in unstructured text data. Though topic models have become a popular choice for such tasks, the textnets package provides an alternative technique that synthesizes recent advances in network analysis/graph theory and natural language processing which has several significant advantages over conventional "bag of words" models.
 
-Though the idea to think about texts as networks of words is not entirely new, advances in Natural Language Processing and community detection analysis have pushed things forward. The textnets package is an attempt to make these innovations widely accessible, and to encourage others to innovate further. The functions provided by the textnets package fall into four main categories: 
+Though network analysis is often used to describe relationships between people-- particularly within the social sciences-- it can also be applied to relationships between words. For example, network ties can be created by the co-occurence of individual words across documents, or ties can be created between documents themselves using a two-mode network projection. 
 
-* those that prepare texts for analysis
-* those that produce text networks
-* those that detect communities within these networks
-* those that visualize the networks and communities
+The advantage of a network-based approach to automated text analysis are a) like social groups, the meaning of groups of words can be more accurately measured through triadic closure-- or the principle that the meaning of any two words or terms to each other can be more accurately understood if they are placed in the context of a third word; b) text networks can be applied to documents of any length unlike topic models which generally require a significant amount of words to function well. This is a significant advantage in an age where short social media texts are becoming pervasive. Finally, c) this approach benefits from recent advances in the interdisciplinary literature on community detection, which arguably provides more accurate ways of grouping words that benefit from clustering observed within networks as opposed to bag of words models. These advantages are further described in the articles referenced below. 
+
+Though the idea to think about texts as networks of words is not entirely new, advances in Natural Language Processing and community detection analysis have pushed things forward. The textnets package is an attempt to make these innovations widely accessible, and to encourage others to innovate further. The textnets package provides the following functions: 
+
+* preparing texts 
+* creating text networks
+* detecting themes within text networks
+* visualizing text networks
 
 ## Getting Started
 
-To begin using textnets, you'll need to install the current version of the package from Github. For this, you'll need the R devtools package, if you don't have it already.
+The most current version of the textnets package is currently available on Github. Therefore to install textnets, the devtools package must also be installed.
 
 ```r
 install.packages("devtools")
