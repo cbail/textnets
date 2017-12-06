@@ -1,12 +1,7 @@
 # textnets
 R package for automated text analysis using network techniques.
 
-<div style="width:200px; height=200px">
-
-![](https://raw.github.com/cbail/textnets/master/figures/brumaire.png)
-</div>
-
-</br>
+<img align="right" src="https://raw.github.com/cbail/textnets/master/figures/brumaire.png">
 
 ### Overview
 
