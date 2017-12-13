@@ -1,8 +1,8 @@
 # textnets
 R package for automated text analysis using network techniques. 
 
-### Citation
-Please cite as Bail, Christopher A. 2016. "Combining Network Analysis and Natural Language Processing to Examine how Advocacy Organizations Stimulate Conversation on Social Media." Proceedings of the National Academy of Sciences, 113:42 11823-11828
+### Citation/Background Paper
+[Bail, Christopher A. 2016. "Combining Network Analysis and Natural Language Processing to Examine how Advocacy Organizations Stimulate Conversation on Social Media." Proceedings of the National Academy of Sciences, 113:42 11823-11828](http://www.pnas.org/content/113/42/11823.full.pdf?with-ds=yes)
 
 ### Overview
 
