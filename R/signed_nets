@@ -1,0 +1,10 @@
+library(cleanNLP)
+library(udpipe)
+
+texty <- c("I like big walls and I cannot lie.", "Big walls being beautiful are a lie.")
+
+cnlp_init_udpipe("english")
+
+texty_a <- cnlp_annotate(texty)
+
+texty_token <- cnlp_get_token(texty_a)
