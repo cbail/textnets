@@ -1,5 +1,7 @@
-library(cleanNLP)
+#according to Mark, udpipe needs to be installed before cleanNLP
 library(udpipe)
+library(cleanNLP)
+
 
 texty <- c("I like big walls and I cannot lie.", "Big walls being beautiful are a lie.")
 
