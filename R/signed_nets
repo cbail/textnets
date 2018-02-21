@@ -1,14 +1,92 @@
 #see this site for parts of speech: http://universaldependencies.org/docs/u/dep/index.html
 #parts of speech we like: amods, conjucts, VBG, verb-conjuncts
 #according to Mark, udpipe needs to be installed before cleanNLP
+
+
+#according to Mark, udpipe needs to be installed before cleanNLP
 library(udpipe)
 library(cleanNLP)
-
-
-texty <- c("I like big walls and I cannot lie.", "Big walls being beautiful are a lie.")
+library(sotu)
+library(syuzhet)
+library(dplyr)
+library(reshape2)
+library(igraph)
+library(ggraph)
 
 cnlp_init_udpipe("english")
 
-texty_a <- cnlp_annotate(texty)
 
-texty_token <- cnlp_get_token(texty_a)
+sotu <- data.frame(cbind(sotu_text, sotu_meta), stringsAsFactors=FALSE)
+sotu$sotu_text <- as.character(sotu$sotu_text)
+
+for_nets<-as.data.frame(NULL)
+
+for(i in 1:nrow(sotu)){
+  results<-cnlp_annotate(sotu$sotu_text[i])
+  texty_token <- cnlp_get_token(results)
+  relations<-cnlp_get_dependency(results)
+  output<-cbind(texty_token,relations$relation)
+  output_new<-data.frame(cbind(texty_token$word, 
+                               texty_token$pos, 
+                               relations$relation,
+                               texty_token$sid))
+  
+  output_new<-output_new[output_new$X3=="amod"|
+                           output_new$X3=="obj",]
+  
+  output_new$X1<-as.character(output_new$X1)
+  output_new$sentiment<-sapply(output_new$X1, get_sentiment)
+  output_new$sentiment[output_new$X3=="obj"]<-NA
+  
+  calcs<-output_new %>%
+    group_by(output_new$X4) %>%
+    summarise(ave_sent=mean(sentiment, na.rm=TRUE))
+  
+  names(calcs)<-c("X4","ave_sent")
+  newstuff<-left_join(output_new, calcs)
+  
+  final<-newstuff[newstuff$X3!="amod",]
+  
+  words<-final[,c("X1", "ave_sent")]
+  
+  words$author<-sotu$president[i]
+  for_nets<-rbind(for_nets, words)
+  print(i)
+}
+
+#group by president and then word
+
+better_nets<-for_nets %>%
+  group_by(author, X1) %>%
+    summarise(sentiment=mean(ave_sent, na.rm=TRUE))
+
+better_nets<-better_nets[!is.nan(better_nets$sentiment),]
+
+#only look at positive words
+positive_net<-better_nets[better_nets$sentiment>0,]
+
+
+#now produce adjacency matrix where cells are populated by average
+# inverse absolutle value of average sentiment difference between 
+# words for each president
+
+for_crossprod<-acast(positive_net, author~X1, sum,
+                     value.var="sentiment")
+#the line above is not working with the noun phrase function
+#create weighted adjacency matrix
+weighted_adjacency<-tcrossprod(for_crossprod)
+#create igraph object
+text_network<-graph.adjacency(weighted_adjacency, mode="undirected", weighted=TRUE, diag=FALSE)
+
+#V(text_network)$degree<-degree(text_network)
+
+ggraph(text_network, layout = "fr") +
+  geom_edge_link(aes(edge_alpha = weight), show.legend = FALSE)+
+  geom_node_text(aes(label = name), repel = TRUE, size=2)+
+  # geom_node_text(aes(label = name, filter=degree>2), repel = TRUE, size=2) +
+  theme_void()
+
+#plot(text_network)
+
+
+
