@@ -1,3 +1,5 @@
+#see this site for parts of speech: http://universaldependencies.org/docs/u/dep/index.html
+#parts of speech we like: amods, conjucts, VBG, verb-conjuncts
 #according to Mark, udpipe needs to be installed before cleanNLP
 library(udpipe)
 library(cleanNLP)
