@@ -25,16 +25,11 @@ create_textnet<-function(tidytextobject, node_type=c("groups","words")){
   }
   if(node_type=="words"){
    for_adjacency<-tidytextobject %>%
-      #calculate tfidf
-      bind_tf_idf(word, group, count) %>%
-      #sort on word (for speed)
-      arrange(word)
-    for_crossprod<-sparseMatrix(i=match(for_adjacency$group, unique(for_adjacency$group)), 
-                                j=match(for_adjacency$word, unique(for_adjacency$word)), 
-                                x=for_adjacency$tf_idf, 
-                             dimnames=list(unique(for_adjacency$group), 
-                                           unique(for_adjacency$word)))
-    for_crossprod <- for_crossprod[sort(rownames(for_crossprod)),]
+     bind_tf_idf(group, word, count)
+-    # I was not able to find a dplyr function that will do this next line
+-    # this is too bad because this is the slowest of the functions
+-    for_crossprod<-acast(for_adjacency, word~group, sum,
+-                         value.var="tf_idf")
 
     #the line above is not working with the noun phrase function
     #create weighted adjacency matrix
