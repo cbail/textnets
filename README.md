@@ -34,6 +34,7 @@ You'll also need several other packages for network analysis, text analysis, and
 
 ```r
 library(dplyr)
+library(Matrix)
 library(tidytext)
 library(stringr)
 library(SnowballC)
