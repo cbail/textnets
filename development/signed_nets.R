@@ -22,10 +22,9 @@ library(syuzhet)
 library(dplyr)
 library(tidyr)
 # library(tidytext)
-# library(syuzhet)
-# library(reshape2)
-# library(igraph)
-# library(ggraph)
+library(reshape2)
+library(igraph)
+library(ggraph)
 
 
 ##
@@ -43,15 +42,29 @@ text_data <- data_frame(doc_ids = c(1,2,3,4,5),
 
 sotu <- bind_cols(data_frame(sotu_text), sotu_meta)
 
-# load descriptions of english specific pos abbreviations
-# url <- "https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html"
-# en_pos_abb <- url %>%
-#   read_html() %>%
-#   html_nodes(xpath='/html/body/table') %>%
-#   html_table()
-# en_pos_abb <- en_pos_abb[[1]][2:nrow(en_pos_abb[[1]]),2:3]
-# saveRDS(en_pos_abb, "~/Work/Projects/textnets/english_pos_abbreviations.RDS")
-en_pos_abb <- readRDS("~/Work/Projects/textnets/english_pos_abbreviations.RDS")
+
+load("/Users/christopherandrewbail/Desktop/Dropbox/Textnets Development 2018/Elected Officials Twitter Data.Rdata")
+
+twitter_test<-sample_n(elected_tweets, 1000)
+# 
+# library(stringi)
+# twitter_test$text<-stri_enc_toutf8(twitter_test$text)
+
+twitter_test$text <- iconv(twitter_test$text, "latin1", "UTF-8",sub='')
+
+twitter_test$text <- gsub("http.*", "", twitter_test$text)
+
+twitter_test$text <- gsub("@|#", " ", twitter_test$text)
+
+twitter_test$word_count<-sapply(gregexpr("\\W+", twitter_test$text), length)-1
+
+twitter_test<-twitter_test[twitter_test$word_count>2,]
+
+# twitter_test<-twitter_test[grep("^[[:blank:]]+$", twitter_test$text),]
+
+out <- get_noun_sentiments(twitter_test[, c("text", "twitter_name", "party")])
+
+twitter_out<-get_noun_modifiers(twitter_test[1,])
 
 
 
@@ -83,7 +96,7 @@ get_noun_sentiments <- function(text_data, lang = "english"){
   # extract tokens from annotation
   text_data_token <- cnlp_get_token(text_data_annotated)
   # extract dependencies from annotation
-  text_data_dependencies <- cnlp_get_dependency(text_data_annotated)
+  text_data_dependencies <- cnlp_get_dependency(text_data_annotated, get_token = TRUE)
   # combine tokens and depencies 
   text_token_dependencies <- data_frame(id = text_data_token$id,
                                         sid = text_data_token$sid,
@@ -233,15 +246,23 @@ get_noun_modifiers <- function(text_data, lang = "english"){
 
 # THIS FUNCTION TAKES A NOUN-SENTIMENT OBJECT AND RETURNS AN ADJACENCY MATRIX FOR THE AUTHORS
 
-get_author_adjacency <- function(sentiment_data){
-  require(reshape2)
+get_author_adjacency <- function(sentiment_data, tfidf_threshold = NULL){
   
   # PROVISIONALLY remove all nans
   sentiment_data <- sentiment_data[!is.nan(sentiment_data$sentiment),]
   
+  #
+  if(!is.null(tfidf_threshold)){
+    sentiment_data <- sentiment_data %>% filter(tfidf>tfidf_threshold)
+  }
+  
+  # to retain compounds, assign compounds to lemma
+  compounds <- grep("[[:alpha:]][[:blank:]][[:alpha:]]", sentiment_data$word)
+  sentiment_data$lemma[compounds] <- sentiment_data$word[compounds]
+  
   # PROVISIONALLY only look at positive sentiment
   # WE MIGHT WANT TO ADD AN ARGUMENT TO ADJUST THIS
-  positive_sentiment <- sentiment_data[sentiment_data$sentiment>0,]
+  # positive_sentiment <- sentiment_data[sentiment_data$sentiment>0,]
   
   ## PRODUCE ADJACENCY MATRIX
   # cells should be: average inverse absolute value of average sentiment
@@ -249,18 +270,22 @@ get_author_adjacency <- function(sentiment_data){
   # NEED TO THINK ABOUT:
   # 1. HOW TO IMPLEMENT DISTANCE FOR SPEAKERS W/O SHARED NOUNS
   # 2. HOW TO KEEP TFIDF PER WORD IN WIDE FORMAT (IF WE JUST KEEP IT, IT CREATES ONE ROW PER WORD PER AUTHOR)
+  # 3. HOW DO WE ACCOUNT FOR LARGE NUMBERS OF SHARED WORDS VS FEW STRONGLY SENTIMENTED SHARED WORD
   
   # cast to wide word by author format with average word sentiment per author in cells
-  noun_sentiment_wide <- dcast(positive_sentiment[,c("doc_auth", "lemma", "sentiment")], 
-                               doc_auth~lemma, mean, na.rm = TRUE)
-  # replace nans with 0
-  noun_sentiment_wide <- replace_na(noun_sentiment_wide,0)
+  noun_sentiment_wide <- dcast(sentiment_data[,c("president", "lemma", "sentiment")], 
+                               president~lemma, mean, na.rm = TRUE)
+  rownames(noun_sentiment_wide) <- noun_sentiment_wide$president
+  noun_sentiment_wide$president <- NULL
+
   
+  # create similarity matrix for edge list
   library(cluster)
-  out<-daisy(for_crossprod)
+  
+  out <- as.matrix(daisy(noun_sentiment_wide))
+  out <- 1/out
+  out <- replace_na(out, 0)
   out <- as.matrix(out)
-  out<-1/out
-  out<-as.matrix(out)
 }
 
 
@@ -273,83 +298,48 @@ get_author_adjacency <- function(sentiment_data){
 ## TEST FUNCTIONS
 ##
 
-stime_nound <- system.time(parsed_sotu_noun <- get_noun_sentiments(sotu))
-stime_mod <- system.time(parsed_sotu_mod <- get_noun_modifiers(sotu))
+# stime_nound <- system.time(parsed_sotu_noun <- get_noun_sentiments(sotu))
+# stime_mod <- system.time(parsed_sotu_mod <- get_noun_modifiers(sotu))
 
 
 ##
 ## SAVE PARSED SOTU DATA
 ##
 
-saveRDS(parsed_sotu_noun, "~/Work/Projects/textnets/parsed_sotu_noun.RDS")
-saveRDS(parsed_sotu_mod, "~/Work/Projects/textnets/parsed_sotu_mod.RDS")
+# saveRDS(parsed_sotu_noun, "~/Work/Projects/textnets/parsed_sotu_noun.RDS")
+# saveRDS(parsed_sotu_mod, "~/Work/Projects/textnets/parsed_sotu_mod.RDS")
 
 
 
 
-# add president
-parsed_sotu_noun$president <- NA
-parsed_sotu_noun$president <- sotu$president[ parsed_sotu_noun$id]
 
 
 
-
-# # subset to objects only, i.e. drop modifiers
-# # then group by speaker and word
-# eu_speech_nets <- parsed_eu_speech %>%
-#   filter(relation=="obj") %>% 
-#   group_by(speaker, word) %>%
-#   summarise(mean_word_sent = mean(ave_sent, na.rm=TRUE))
-
-# for now, remove all NANs
-sotu_noun_nets <- parsed_sotu_noun[!is.nan(parsed_sotu_noun$ave_sent),]
-sotu_mod_nets <- parsed_sotu_mod[!is.nan(parsed_sotu_mod$comb_sent),]
-
-
-# # remove stop words and non-word characters
-# eu_speech_nets <- eu_speech_nets[!eu_speech_nets$word%in%cstop_words$word,]
-# eu_speech_nets <- eu_speech_nets[-grep("[[:punct:]]", eu_speech_nets$word),]
-
-# only look at positive words
-positive_sotu_noun_nets <- sotu_noun_nets[sotu_noun_nets$ave_sent>median(sotu_noun_nets$ave_sent),]
-negative_sotu_noun_nets <- sotu_noun_nets[sotu_noun_nets$ave_sent<0,]
-
-
-# now produce adjacency matrix where cells are populated by average
-# inverse absolute value of average sentiment difference between 
-# words for each speaker
-
-for_crossprod <- acast(positive_sotu_noun_nets, speaker~word, sum,
-                       value.var="mean_word_sent")
-
-# the line above is not working with the noun phrase function
-# create weighted adjacency matrix
-weighted_adjacency <- tcrossprod(for_crossprod)
 
 # create igraph object
-eu_speech_positive_network <- graph.adjacency(weighted_adjacency, mode="undirected", weighted=TRUE, diag=FALSE)
+sotu_ran_net <- graph.adjacency(out, mode="undirected", weighted=TRUE, diag=FALSE)
 
 # 
-V(eu_speech_positive_network)$country <- c("Germany", "Greece", "Greece", "Czech Republic", "Ireland", 
-                                           "Italy", "United Kingdom", "Poland", "France", "Italy", 
-                                           "Italy", "France", "United Kingdom", "Greece", "Germany", 
-                                           "United Kingdom", "Belgium", "Belgium", "Austria", "Netherlands", 
-                                           "Italy", "United Kingdom")
-# role
-V(eu_speech_positive_network)$role <- c("Country leader", "Country leader", "Country leader", 
-                                        "Country leader", "MEP", "MEP", "Country leader", "Country leader", 
-                                        "MEP", "Country leader", 
-                                        "MEP", "MEP", "Country leader", "Country leader", "MEP", 
-                                        "MEP", "MEP", "EC president", "MEP", "Country leader", 
-                                        "Country leader", "Country leader")
+# V(eu_speech_positive_network)$country <- c("Germany", "Greece", "Greece", "Czech Republic", "Ireland", 
+#                                            "Italy", "United Kingdom", "Poland", "France", "Italy", 
+#                                            "Italy", "France", "United Kingdom", "Greece", "Germany", 
+#                                            "United Kingdom", "Belgium", "Belgium", "Austria", "Netherlands", 
+#                                            "Italy", "United Kingdom")
+# # role
+# V(eu_speech_positive_network)$role <- c("Country leader", "Country leader", "Country leader", 
+#                                         "Country leader", "MEP", "MEP", "Country leader", "Country leader", 
+#                                         "MEP", "Country leader", 
+#                                         "MEP", "MEP", "Country leader", "Country leader", "MEP", 
+#                                         "MEP", "MEP", "EC president", "MEP", "Country leader", 
+#                                         "Country leader", "Country leader")
 
 #V(text_network)$degree<-degree(text_network)
 
-gg <- ggraph(eu_speech_positive_network)
+gg <- ggraph(sotu_ran_net)
 
 gg +
   geom_edge_link(aes(edge_alpha = weight), show.legend = FALSE)+
-  geom_node_text(aes(label = name, color = country), repel = TRUE, size=4)+
+  geom_node_text(aes(label = name), repel = TRUE, size=4)+
   # geom_node_text(aes(label = name, filter=degree>2), repel = TRUE, size=2) + 
   # scale_color_manual(values = c("Republican" = "red", "Democrat" = "blue")) + 
   theme_graph()
