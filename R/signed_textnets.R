@@ -131,7 +131,7 @@ get_noun_sentiments <- function(text_data, lang = "english"){
   }
   
   # return nouns
-  return(text_nouns)
+  return(nouns_from_text)
 }
 
 
