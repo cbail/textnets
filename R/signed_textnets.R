@@ -234,26 +234,28 @@ get_noun_modifiers <- function(text_data, lang = "english"){
 # THIS FUNCTION TAKES A NOUN-SENTIMENT OBJECT AND RETURNS AN ADJACENCY MATRIX FOR THE AUTHORS
 
 get_author_adjacency <- function(sentiment_data){
+  require(reshape2)
   
-  # PROVISIONALLY REMOVE ALL NANs
+  # PROVISIONALLY remove all nans
   sentiment_data <- sentiment_data[!is.nan(sentiment_data$sentiment),]
   
-  # PROVISIONALLY ONLY LOOK AT POSITIVE SENTIMENT
+  # PROVISIONALLY only look at positive sentiment
   # WE MIGHT WANT TO ADD AN ARGUMENT TO ADJUST THIS
   positive_sentiment <- sentiment_data[sentiment_data$sentiment>0,]
   
+  ## PRODUCE ADJACENCY MATRIX
+  # cells should be: average inverse absolute value of average sentiment
+  # difference between words for speakers
+  # NEED TO THINK ABOUT:
+  # 1. HOW TO IMPLEMENT DISTANCE FOR SPEAKERS W/O SHARED NOUNS
+  # 2. HOW TO KEEP TFIDF PER WORD IN WIDE FORMAT (IF WE JUST KEEP IT, IT CREATES ONE ROW PER WORD PER AUTHOR)
   
-  
-  
-  
-  
-  # now produce adjacency matrix where cells are populated by average
-  # inverse absolute value of average sentiment difference between 
-  # words for each speaker
-  
-  for_crossprod <- acast(parsed_sotu_mod, president~lemma, mean, na.rm = TRUE,
-                         value.var="sentiment")
-  for_crossprod <- replace_na(for_crossprod,0)
+  # cast to wide word by author format with average word sentiment per author in cells
+  noun_sentiment_wide <- dcast(positive_sentiment[,c("doc_auth", "lemma", "sentiment")], 
+                               doc_auth~lemma, mean, na.rm = TRUE)
+  # replace nans with 0
+  noun_sentiment_wide <- replace_na(noun_sentiment_wide,0)
+
   library(cluster)
   out<-daisy(for_crossprod)
   out <- as.matrix(out)
