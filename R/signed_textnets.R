@@ -33,12 +33,13 @@ library(tidyr)
 ##
 
 
-text_data <- data_frame(doc_ids = c(1,2,3,4),
+text_data <- data_frame(doc_ids = c(1,2,3,4,5),
                         doc_text = c("I don't like walls. However, chain migration is a problem.",
                                      "I hate him. We have to tear down walls and build bridges in their place.",
                                      "We love tax cuts. They give the people what they deserve.",
-                                     "These hypocritical tax cuts bleed ordinary Americans dry."),
-                        doc_auth = c("A", "B", "C", "D"))
+                                     "These hypocritical tax cuts bleed ordinary Americans dry.",
+                                     "We love this place we call home. We should protect it with strong borders."),
+                        doc_auth = c("A", "B", "C", "D", "E"))
 
 sotu <- bind_cols(data_frame(sotu_text), sotu_meta)
 
@@ -58,8 +59,6 @@ en_pos_abb <- readRDS("~/Work/Projects/textnets/english_pos_abbreviations.RDS")
 ##
 ## WRITING FUNCTIONS
 ##
-
-
 
 
 # THIS FUNCTION EXTRACTS ALL NOUNS AND THE CORRESPONDING SENTIMENT OF THE SENTENCES CONTAINING THEM
@@ -184,8 +183,8 @@ get_noun_modifiers <- function(text_data, lang = "english"){
   # text_data_sub <- union(text_to_keep, targets_to_keep) %>% arrange(id, sid, tid)
   
   # now: get sentiment for noun targets, then add amod sentiment
-  nouns_from_text$sentiment <- NA
-  nouns_from_text$sentiment[nouns_from_text$upos%in%c("NOUN", "PROPN")] <- get_sentiment(nouns_from_text$lemma_dep[nouns_from_text$upos%in%c("NOUN", "PROPN")],language = lang)
+  nouns_from_text$noun_sent <- NA
+  nouns_from_text$noun_sent[nouns_from_text$upos%in%c("NOUN", "PROPN")] <- get_sentiment(nouns_from_text$lemma_dep[nouns_from_text$upos%in%c("NOUN", "PROPN")],language = lang)
   # get amods and their referents
   amods_from_text <- text_token_dependencies[text_token_dependencies$relation=="amod", c("id", "sid", "tid_target", "lemma")]
   names(amods_from_text) <- c("id", "sid", "tid", "amod")
@@ -196,10 +195,10 @@ get_noun_modifiers <- function(text_data, lang = "english"){
   
   # calculate combined sentiment
   # need to figure out how to combine sentiments sensibly
-  nouns_from_text$comb_sent <- NA
-  nouns_from_text$comb_sent <- ifelse(is.na(nouns_from_text$amod),
-                                      nouns_from_text$sentiment,
-                                      nouns_from_text$sentiment + nouns_from_text$amod_sent)
+  nouns_from_text$sentiment <- NA
+  nouns_from_text$sentiment <- ifelse(is.na(nouns_from_text$amod),
+                                      nouns_from_text$noun_sent,
+                                      nouns_from_text$noun_sent + nouns_from_text$amod_sent)
   
   # NOUN COMPOUNDS
   # retrieve noun compounds
@@ -229,6 +228,37 @@ get_noun_modifiers <- function(text_data, lang = "english"){
   
   # return nouns
   return(nouns_from_text)
+}
+
+
+# THIS FUNCTION TAKES A NOUN-SENTIMENT OBJECT AND RETURNS AN ADJACENCY MATRIX FOR THE AUTHORS
+
+get_author_adjacency <- function(sentiment_data){
+  
+  # PROVISIONALLY REMOVE ALL NANs
+  sentiment_data <- sentiment_data[!is.nan(sentiment_data$sentiment),]
+  
+  # PROVISIONALLY ONLY LOOK AT POSITIVE SENTIMENT
+  # WE MIGHT WANT TO ADD AN ARGUMENT TO ADJUST THIS
+  positive_sentiment <- sentiment_data[sentiment_data$sentiment>0,]
+  
+  
+  
+  
+  
+  
+  # now produce adjacency matrix where cells are populated by average
+  # inverse absolute value of average sentiment difference between 
+  # words for each speaker
+  
+  for_crossprod <- acast(parsed_sotu_mod, president~lemma, mean, na.rm = TRUE,
+                         value.var="sentiment")
+  for_crossprod <- replace_na(for_crossprod,0)
+  library(cluster)
+  out<-daisy(for_crossprod)
+  out <- as.matrix(out)
+  out<-1/out
+  out<-as.matrix(out)
 }
 
 
