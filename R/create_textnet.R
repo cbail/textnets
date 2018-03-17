@@ -10,11 +10,13 @@
 create_textnet<-function(tidytextobject, node_type=c("groups","words")){
 
   if(node_type=="groups"){
+    
     for_adjacency<-tidytextobject %>%
       #calculate tfidf
       bind_tf_idf(word, group, count) %>%
       #sort on word (MUCH faster
       arrange(word)
+    
       for_crossprod<-sparseMatrix(i=match(for_adjacency$group, unique(for_adjacency$group)), 
                                 j=match(for_adjacency$word, unique(for_adjacency$word)), 
                                 x=for_adjacency$tf_idf, 
@@ -30,6 +32,7 @@ create_textnet<-function(tidytextobject, node_type=c("groups","words")){
   if(node_type=="words"){
    for_adjacency<-tidytextobject %>%
      bind_tf_idf(group, word, count)
+    
    # I was not able to find a dplyr function that will do this next line
     # this is too bad because this is the slowest of the functions
        for_crossprod<-sparseMatrix(i=match(for_adjacency$word, unique(for_adjacency$word)), 
