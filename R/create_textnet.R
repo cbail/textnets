@@ -21,7 +21,6 @@ create_textnet<-function(tidytextobject, node_type=c("groups","words")){
                                 dimnames=list(unique(for_adjacency$group), 
                                               unique(for_adjacency$word)))
       for_crossprod <- for_crossprod[sort(rownames(for_crossprod)),]
-    
     #the line above is not working with the noun phrase function
     #create weighted adjacency matrix
     weighted_adjacency<-tcrossprod(for_crossprod)
@@ -39,7 +38,6 @@ create_textnet<-function(tidytextobject, node_type=c("groups","words")){
                                 dimnames=list(unique(for_adjacency$word), 
                                               unique(for_adjacency$group)))
       for_crossprod <- for_crossprod[sort(rownames(for_crossprod)),]
-
     #the line above is not working with the noun phrase function
     #create weighted adjacency matrix
     weighted_adjacency<-tcrossprod(for_crossprod)
