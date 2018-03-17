@@ -13,9 +13,6 @@ create_textnet<-function(tidytextobject, node_type=c("groups","words")){
     for_adjacency<-tidytextobject %>%
       #calculate tfidf
       bind_tf_idf(word, group, count)
-       for_adjacency<-tidytextobject %>%
-      #calculate tfidf
-      bind_tf_idf(word, group, count) %>%
       #sort on word (MUCH faster
       arrange(word)
       for_crossprod<-sparseMatrix(i=match(for_adjacency$group, unique(for_adjacency$group)), 
