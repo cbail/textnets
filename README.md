@@ -64,7 +64,7 @@ Here is a two-mode projection of this network. As you can see, edges are only dr
 ![](https://raw.github.com/cbail/textnets/master/figures/twomode.png)
 </div>
 
-With some reshaping of the data, this two-mode network can be projected in either of its one-mode forms. That is, with either words connected through the newspapers they share in common, or with newspapers connected through the words they share in common. Importantly, these two projections represent the `node_type="words"` and `node_type="groups"` parameter settings respectively, which are specified in the `prep_texts` function described further below.
+With some reshaping of the data, this two-mode network can be projected in either of its one-mode forms. That is, with either words connected through the newspapers they share in common, or with newspapers connected through the words they share in common. Importantly, these two projections represent the `node_type="words"` and `node_type="groups"` parameter settings respectively, which are specified in the `PrepText` function described further below.
 
 <div style="width:700px; height=700px">
 
@@ -99,61 +99,61 @@ Here is what the data look like. Yours should look similar if you plan to analyz
 
 ## Prepare Text
 
-The textnet package includes two functions to prepare texts for analysis. You will choose one or the other for your analysis. The `prep_text` function prepares texts for networks using all types of words, while the `prep_text_noun_phrases` prepares text for networks using only nouns and noun phrases. Users may prefer to create networks based on only nouns or noun phrases because previous studies have shown that such parts of speech are more useful in mapping the topical content of a text than other parts of speech, such as verbs or adjectives (e.g. Rule, Cointet, and Bearman 2015).
+The textnet package includes two functions to prepare texts for analysis. You will choose one or the other for your analysis. The `PrepText` function prepares texts for networks using all types of words, while the `PrepTextNounPhrases` prepares text for networks using only nouns and noun phrases. Users may prefer to create networks based on only nouns or noun phrases because previous studies have shown that such parts of speech are more useful in mapping the topical content of a text than other parts of speech, such as verbs or adjectives (e.g. Rule, Cointet, and Bearman 2015).
 
-Let's begin with the `prep_text` function. This function requires the user to provide three inputs: a dataframe (`mydf`), a column within that dataframe containing the texts that the user would like to analyze (`textvar`), and a column within that dataframe describing the groups through which the words of those texts will be linked (`groupvar`). For example, the latter could contain unique document ids, if the user would like to link words co-occurring within documents, or it could be author ids, if the user would like to link words co-occurring by authors, etc. In network analysis terminology, the `textvar` and the `groupvar` are specifying the nodes sets of a two-mode network. 
+Let's begin with the `PrepText` function. This function requires the user to provide three inputs: a dataframe (`mydf`), a column within that dataframe containing the texts that the user would like to analyze (`textvar`), and a column within that dataframe describing the groups through which the words of those texts will be linked (`groupvar`). For example, the latter could contain unique document ids, if the user would like to link words co-occurring within documents, or it could be author ids, if the user would like to link words co-occurring by authors, etc. In network analysis terminology, the `textvar` and the `groupvar` are specifying the nodes sets of a two-mode network. 
 
-Finally, the `prep_text` function requires the user to specify which projection of the two-mode network should be created: one in which words will be the nodes (with edges to each other based on co-appearance in the same group), or one in which groups will be the nodes (with edges based on overlap in words between the groups). An example of the former application is Rule, Cointet, and Bearman (2015), and an example of the latter application is Bail (2016). At present the `prep_text` function also includes three optional arguments. The `remove_url` function eliminates any hyperlinks within the provided texts. The `remove_stop_words` function eliminates very common English-language words such as "and", "the", or "at." The `stem` function reduces each term to its stem form. For example, the term "running" would become the term "run" if the user sets `stem=TRUE`. The `remove_numbers` parameter, if set to TRUE, will remove numbers that are unattached to letters (i.e. it will remove "60" and "1960" but not "60s" or "1960s", likewise "2" but not "2nd", etc).
+Finally, the `PrepText` function requires the user to specify which projection of the two-mode network should be created: one in which words will be the nodes (with edges to each other based on co-appearance in the same group), or one in which groups will be the nodes (with edges based on overlap in words between the groups). An example of the former application is Rule, Cointet, and Bearman (2015), and an example of the latter application is Bail (2016). At present the `prep_text` function also includes three optional arguments. The `remove_url` function eliminates any hyperlinks within the provided texts. The `remove_stop_words` function eliminates very common English-language words such as "and", "the", or "at." The `stem` function reduces each term to its stem form. For example, the term "running" would become the term "run" if the user sets `stem=TRUE`. The `remove_numbers` parameter, if set to TRUE, will remove numbers that are unattached to letters (i.e. it will remove "60" and "1960" but not "60s" or "1960s", likewise "2" but not "2nd", etc).
 
-The output of the `prep_text` function is a dataframe in tidytext style, where each row of the dataframe describes a word, the document that it appears in, and its overall frequency within that document. 
+The output of the `PrepText` function is a dataframe in "tidytext" style, where each row of the dataframe describes a word, the document that it appears in, and its overall frequency within that document. 
 
 The following code prepares the State of the Union data, specifying that nodes will be the group of presidents, with edges draw according to the overlap of words used in their speeches. In this example we also remove stop words and stem.
 
 ```r
-sotu_text_data <- prep_text(sotu, textvar="sotu_text", groupvar="president", node_type="groups", remove_stop_words=TRUE, stem=TRUE)
+sotu_text_data <- PrepText(sotu, textvar="sotu_text", groupvar="president", node_type="groups", remove_stop_words=TRUE, stem=TRUE)
 ```
 
-The syntax for using the `prep_text_noun_phrases` function is the same as the `prep_text` function, but instead of outputing all words in each document, it outputs nouns and nounphrases. Nouns are identified using the `phrasemachine` package, which requires a version of Java >7, or a Python backend with the Spacy package. Either way, the `prep_text_noun_phrases` package will take much longer than the `prep_text` function because it must perform part-of-speech tagging on each sentence within each document in the provided dataframe. The amount of time will depend on both the number and the length of texts. But users may conclude that the added time is worth it if they belive nouns and noun phrases are more likely to describe the topical content of a document than other parts of speech. 
+The syntax for using the `prep_text_noun_phrases` function is the same as the `PrepText` function, but instead of outputing all words in each document, it outputs nouns and nounphrases. Nouns are identified using the `phrasemachine` package, which requires a version of Java >7, or a Python backend with the Spacy package. Either way, the `PrepTextNounPhrases` package will take much longer than the `PrepText` function because it must perform part-of-speech tagging on each sentence within each document in the provided dataframe. The amount of time will depend on both the number and the length of texts. But users may conclude that the added time is worth it if they belive nouns and noun phrases are more likely to describe the topical content of a document than other parts of speech. 
 
 The default ngram length for noun phrases is set to 4, but the user may specify a different range using the `max_ngram_length` argument. This may be of particular importance to scholars interested in organizations such as universities or government agencies, as many are likely to have formal titles comprised of than 4 words. Additionally, while all nouns are included in the output, only the top 1,000 noun phrases are included, to prevent an over detection of nested terms (e.g. 'the_President', 'the_President_of_the_United', 'the_President_of_the_United_States', 'the_President_of_the_United_States_of_America'). If the user wishes to extract all noun phrases instead of just the top 1,000, the `top_phrases` parameter should be set to FALSE.
 
 ```r
-sotu_text_data_nouns <- prep_text_noun_phrases(sotu, "president", "sotu_text", node_type="groups", top_phrases=TRUE)
+sotu_text_data_nouns <- PrepTextNounPhrases(sotu, "president", "sotu_text", node_type="groups", top_phrases=TRUE)
 ```
 
 </br></br>
 
 ## Creating Text Networks
 
-The workhorse function within the textnets package is the `create_textnet` function. This function reads in an object created using the `prep_text` or `prep_text_noun_phrases` functions and outputs a weighted adjacency matrix, or a square matrix where the rows and columns correspond to either the groups of the group variable (if the user specificed `node_type="group"` in the previous stage), or words (if the user specified `node_type="words"`). The cells of the adjacency matrix are the sum of the term-frequency inverse-document frequency (TFIDF) for overlapping terms between two documents. This is the procedure described in Bail (2016).
+The workhorse function within the textnets package is the `create_textnet` function. This function reads in an object created using the `PrepText` or `PrepTextNounPhrases` functions and outputs a weighted adjacency matrix, or a square matrix where the rows and columns correspond to either the groups of the group variable (if the user specificed `node_type="group"` in the previous stage), or words (if the user specified `node_type="words"`). The cells of the adjacency matrix are the sum of the term-frequency inverse-document frequency (TFIDF) for overlapping terms between two documents. This is the procedure described in Bail (2016).
 
 ```r
-sotu_text_network <- create_textnet(sotu_text_data, node_type="groups")
+sotu_text_network <- CreateTextnet(sotu_text_data, node_type="groups")
 ```
 
 </br></br>
 
 ## Analyzing Text Networks
 
-In order to group documents according to their similarity-- or in order to identify latent themes across texts-- users may wish to cluster documents or words within text networks. The `text_communities` function applies the Louvain community detection algorithm to do this, which automatically uses the edge weights and determines the number of clusters within a given network. The function outputs a dataframe with the cluster or "modularity" class to which each document or word has been assigned.
+In order to group documents according to their similarity-- or in order to identify latent themes across texts-- users may wish to cluster documents or words within text networks. The `TextCommunities` function applies the Louvain community detection algorithm to do this, which automatically uses the edge weights and determines the number of clusters within a given network. The function outputs a dataframe with the cluster or "modularity" class to which each document or word has been assigned.
 
 ```r
-sotu_communities <- text_communities(sotu_text_network)
+sotu_communities <- TextCommunities(sotu_text_network)
 ```
-In order to further understand which terms are driving the clustering of documents or words, the user can use the `interpret` function, which also reads in an object created by the `create_textnet` function and outputs the words with the 10 highest TFIDF frequencies within each cluster or modularity class. In order to match words, the function requires that the user specify the name of the text data frame object used to create the text network-- in this case `sotu_text_data` (see above).
+In order to further understand which terms are driving the clustering of documents or words, the user can use the `InterpretText` function, which also reads in an object created by the `CreateTextnet` function and outputs the words with the 10 highest TFIDF frequencies within each cluster or modularity class. In order to match words, the function requires that the user specify the name of the text data frame object used to create the text network-- in this case `sotu_text_data` (see above).
 
 ```r
-top_words_modularity_classes <- interpret(sotu_text_network, sotu_text_data)
+top_words_modularity_classes <- InterpretText(sotu_text_network, sotu_text_data)
 ```
 
 </br></br>
 
 ## Centrality Measures
 
-Often in social networks, researchers wish to calculate measures of influence or centrality in order to predict whether or not occupying brokerage positions can create greater social rewards for individuals. As Bail (2016) shows, the same logic can be applied to text networks to develop a measure of "cultural betweenness" or the extent to which a given document or word is between clusters. To calculate cultural betweennes as well as other centrality measures, `textnet` users can use the `centrality` function.
+Often in social networks, researchers wish to calculate measures of influence or centrality in order to predict whether or not occupying brokerage positions can create greater social rewards for individuals. As Bail (2016) shows, the same logic can be applied to text networks to develop a measure of "cultural betweenness" or the extent to which a given document or word is between clusters. To calculate cultural betweennes as well as other centrality measures, `textnet` users can use the `TextCentrality` function.
 
 ```r
-text_centrality <- centrality(sotu_text_network)
+text_centrality <- TextCentrality(sotu_text_network)
 ```
 
 </br></br>
@@ -161,8 +161,8 @@ text_centrality <- centrality(sotu_text_network)
 
 ## Visualizing Text Networks
 
-Finally, the textnets package includes two functions to visualize text networks created in the previous steps. The `visualize` function creates a network diagram where nodes are colored by their cluster or modularity class (see previous section). In many cases, text networks will be very dense (that is, there will be a very large number of edges because most documents share at least one word). Visualizing text networks therefore creates inherent challenges, because such dense networks are very cluttered. To make text networks more readable, the `visualize` function requires the user to specify a `prune_cut` argument, which specifies which quantile of edges should be kept for the visualization. For example, if the user sets `prune_cut=.9` only edges that have a weight in the 90th percentile or above will be kept. 
-The `visualize` function also includes an argument that determines which nodes will be labeled, since network visualizations with too many node labels can be difficult to interpret. The user specifies an argument called `label_degree_cut` which specifies the degree, or number of each connections, that nodes which are labeled should have. For example, if the user only wants nodes that have at least 3 connections to other nodes to be labeled (and only wants to visualize edges with a weight that is greater than the 50th percentile), she or he would use the following code:
+Finally, the textnets package includes two functions to visualize text networks created in the previous steps. The `VisualizeText` function creates a network diagram where nodes are colored by their cluster or modularity class (see previous section). In many cases, text networks will be very dense (that is, there will be a very large number of edges because most documents share at least one word). Visualizing text networks therefore creates inherent challenges, because such dense networks are very cluttered. To make text networks more readable, the `visualize` function requires the user to specify a `prune_cut` argument, which specifies which quantile of edges should be kept for the visualization. For example, if the user sets `prune_cut=.9` only edges that have a weight in the 90th percentile or above will be kept. 
+The `VisualizeText` function also includes an argument that determines which nodes will be labeled, since network visualizations with too many node labels can be difficult to interpret. The user specifies an argument called `label_degree_cut` which specifies the degree, or number of each connections, that nodes which are labeled should have. For example, if the user only wants nodes that have at least 3 connections to other nodes to be labeled (and only wants to visualize edges with a weight that is greater than the 50th percentile), she or he would use the following code:
 
 ```r
 visualize(sotu_text_network, .50, label_degree_cut=3)
@@ -171,17 +171,17 @@ visualize(sotu_text_network, .50, label_degree_cut=3)
 ![Plot](https://raw.github.com/cbail/textnets/master/figures/SOTU_Plot.png)
 
 
-The final function in the textnets package is the `visualize_d3js` function. This function outputs an interactive javascript visualization of the text network, where the user can mouse over each node in order to reveal its node label. Once again, nodes are coloured by their modularity class, and the user must sepcify a `prune_cut`argument:
+The final function in the textnets package is the `VisualizeTextD3js` function. This function outputs an interactive javascript visualization of the text network, where the user can mouse over each node in order to reveal its node label. Once again, nodes are coloured by their modularity class, and the user must sepcify a `prune_cut`argument:
 
 ```r
-visualize_d3js(sotu_text_network, .50)
+VisualizeTextD3js(sotu_text_network, .50)
 ```
 
 To save this as an html file for sharing with others or in a presentation, the following can be used. The `height` and `width` parameters are set in pixels, and `bound=TRUE` will prevent the network from dispersing beyond these dimensions. While this may help viewers to see all nodes, it will also cause nodes to cluster at the limits of height and wigth. This can be prevented by increasing the `charge` parameters, which specifies the strength of node repulsion (negative value) or attraction (positive value). The `zoom` parameter indicates whether to allow users to zoom in and out of the network, which can be especially helpful in large networks for exploring clusters.
 
 ```r
 library(htmlwidgets)
-vis <- visualize_d3js(sotu_text_network, 
+vis <- VisualizeTextD3js(sotu_text_network, 
                       prune_cut=.50,
                       height=1000,
                       width=1400,
