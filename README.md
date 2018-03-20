@@ -125,7 +125,7 @@ sotu_text_data_nouns <- PrepTextNounPhrases(sotu, "president", "sotu_text", node
 
 ## Creating Text Networks
 
-The workhorse function within the textnets package is the `create_textnet` function. This function reads in an object created using the `PrepText` or `PrepTextNounPhrases` functions and outputs a weighted adjacency matrix, or a square matrix where the rows and columns correspond to either the groups of the group variable (if the user specificed `node_type="group"` in the previous stage), or words (if the user specified `node_type="words"`). The cells of the adjacency matrix are the sum of the term-frequency inverse-document frequency (TFIDF) for overlapping terms between two documents. This is the procedure described in Bail (2016).
+The workhorse function within the textnets package is the `CreateTextnet` function. This function reads in an object created using the `PrepText` or `PrepTextNounPhrases` functions and outputs a weighted adjacency matrix, or a square matrix where the rows and columns correspond to either the groups of the group variable (if the user specificed `node_type="group"` in the previous stage), or words (if the user specified `node_type="words"`). The cells of the adjacency matrix are the sum of the term-frequency inverse-document frequency (TFIDF) for overlapping terms between two documents. This is the procedure described in Bail (2016).
 
 ```r
 sotu_text_network <- CreateTextnet(sotu_text_data, node_type="groups")
