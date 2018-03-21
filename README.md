@@ -50,7 +50,8 @@ library(networkD3)
 
 Before we move on to a working example, it's important to note that the textnet package constructs two-mode networks out of texts, also known as affiliation or bipartite networks. Such networks include two sets of nodes, with edges drawn only between nodes of *different* sets. To clarify this concept, let's take the example of a network where the first node set is words found in US newspaper headlines on the day of the first moon landing (July 20, 1969), and the second node set is the newspapers themselves. The data would look something like this:
 
-<div style="width:700px; height=700px">
+<div style="width:450px; height=450px">
+
 ![](https://raw.github.com/cbail/textnets/master/figures/moonlanding_headlines.png)
 
 </br>
@@ -59,6 +60,7 @@ Here is a two-mode projection of this network. As you can see, edges are only dr
 
 
 <div style="width:700px; height=700px">
+  
 ![](https://raw.github.com/cbail/textnets/master/figures/twomode.png)
 
 With some reshaping of the data, this two-mode network can be projected in either of its one-mode forms. That is, with either words connected through the newspapers they share in common, or with newspapers connected through the words they share in common. Importantly, these two projections represent the `node_type="words"` and `node_type="groups"` parameter settings respectively, which are specified in the `PrepText` function described further below.
