@@ -1,4 +1,3 @@
-exportPattern("^[[:alpha:]]+")
 import(dplyr)
 import(tidytext)
 import(stringr)
