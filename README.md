@@ -165,7 +165,7 @@ Finally, the textnets package includes two functions to visualize text networks 
 The `VisualizeText` function also includes an argument that determines which nodes will be labeled, since network visualizations with too many node labels can be difficult to interpret. The user specifies an argument called `label_degree_cut` which specifies the degree, or number of each connections, that nodes which are labeled should have. For example, if the user only wants nodes that have at least 3 connections to other nodes to be labeled (and only wants to visualize edges with a weight that is greater than the 50th percentile), she or he would use the following code:
 
 ```r
-visualize(sotu_text_network, .50, label_degree_cut=3)
+VisualizeText(sotu_text_network, .50, label_degree_cut=3)
 ```
 
 ![Plot](https://raw.github.com/cbail/textnets/master/figures/SOTU_Plot.png)
