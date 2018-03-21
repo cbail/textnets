@@ -9,6 +9,9 @@
 
 CreateTextnet<-function(tidytextobject, node_type=c("groups","words")){
   
+  library(dplyr)
+  library(tidytext)
+  
   if(node_type=="groups"){
     
     for_adjacency<-tidytextobject %>%
