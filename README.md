@@ -69,7 +69,6 @@ With some reshaping of the data, this two-mode network can be projected in eithe
 ![](https://raw.github.com/cbail/textnets/master/figures/bothmodes.png)
 
 When you're using textnets, one node set will always be comprised of the words found in the documents  analyzed; the other node set can be the documents themselves, or some meta data about those documents, such as the authors, publishers, dates, etc.
-</div>
 
 
 ### Format of Input Data
