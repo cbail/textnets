@@ -1,9 +1,2 @@
-import(dplyr)
-import(tidytext)
-import(stringr)
-import(SnowballC)
-import(reshape2)
-import(phrasemachine)
-import(igraph)
-import(ggraph)
-import(networkD3)
+exportPattern("^[[:alpha:]]+")
+
