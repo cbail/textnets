@@ -1,4 +1,1 @@
-exportPattern("^[[:alpha:]]+")
-import(Matrix)
-import(dplyr)
-import(tidytext)
+exportPattern("^[[:alpha:]]+_")
