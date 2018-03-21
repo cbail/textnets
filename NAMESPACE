@@ -1,2 +1,9 @@
-exportPattern("^[[:alpha:]]+")
+export(CreateTextnet)
+export(InterpretText)
+export(PrepText)
+export(PrepTextNounPhrases)
+export(TextCentrality)
+export(TextCommunities)
+export(VisualizeText)
+export(VisualizeTextD3js)
 
