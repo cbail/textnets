@@ -76,7 +76,7 @@ twitter_out<-get_noun_modifiers(twitter_test[1,])
 
 # THIS FUNCTION EXTRACTS ALL NOUNS AND THE CORRESPONDING SENTIMENT OF THE SENTENCES CONTAINING THEM
 
-get_noun_sentiments <- function(text_data, lang = "english"){
+get_noun_sentiments <- function(text_data, lang = "english", min_df = 0){
   # SETUP
   # ensure first row is numeric document id
   if(!all(text_data[,1]==1:nrow(text_data))){
@@ -98,14 +98,9 @@ get_noun_sentiments <- function(text_data, lang = "english"){
   # extract dependencies from annotation
   text_data_dependencies <- cnlp_get_dependency(text_data_annotated, get_token = TRUE)
   # combine tokens and depencies 
-  text_token_dependencies <- data_frame(id = text_data_token$id,
-                                        sid = text_data_token$sid,
-                                        tid = text_data_token$tid,
-                                        word = text_data_token$word,
-                                        lemma = text_data_token$lemma,
-                                        pos = text_data_token$pos,
-                                        upos = text_data_token$upos,
-                                        relation = text_data_dependencies$relation)
+  text_token_dependencies <- full_join(text_data_dependencies[,c("id", "sid", "tid_target", "relation")],
+                                       text_data_token[,c("id", "sid", "tid", "word", "lemma", "pos", "upos")],
+                                       by = c("id"="id", "sid"="sid", "tid_target"="tid"))
   
   # SENTIMENT ANALYSIS
   # get sentiment for lemmatized words
@@ -126,11 +121,12 @@ get_noun_sentiments <- function(text_data, lang = "english"){
   
   # TFIDF WEIGHTS
   # get tf-idf for all nouns
-  nouns_tfidf <- cnlp_get_tfidf(nouns_from_text[,c("id", "word")], token_var = "word")
+  nouns_tfidf <- cnlp_get_tfidf(nouns_from_text[,c("id", "word")], token_var = "word",
+                                min_df = min_df)
   # force to matrix and transpose tfidf data
   nouns_tfidf <- t(as.matrix(nouns_tfidf))
   # add word column and turn into dataframe for reshaping
-  nouns_tfidf <- as_data_frame(cbind(nouns_tfidf, word = rownames(nouns_tfidf)))
+  nouns_tfidf <- dplyr::as_data_frame(cbind(nouns_tfidf, word = rownames(nouns_tfidf)))
   # reshape wide to long
   nouns_tfidf <- gather(nouns_tfidf, id, tfidf, -word)
   # add tfidf to output data
@@ -149,7 +145,7 @@ get_noun_sentiments <- function(text_data, lang = "english"){
 
 # THIS FUNCTION EXTRACTS ALL NOUNS AND CORRESPONDING MODIFIERS TO GET THEIR SENTIMENT
 
-get_noun_modifiers <- function(text_data, lang = "english"){
+get_noun_modifiers <- function(text_data, lang = "english", ...){
   # SETUP
   # ensure first row is numeric document id
   if(!all(text_data[,1]==1:nrow(text_data))){
@@ -171,17 +167,13 @@ get_noun_modifiers <- function(text_data, lang = "english"){
   # extract dependencies from annotation
   text_data_dependencies <- cnlp_get_dependency(text_data_annotated, get_token = TRUE)
   # combine tokens and dependencies 
-  text_token_dependencies <- data_frame(id = text_data_token$id,
-                                        sid = text_data_token$sid,
-                                        tid = text_data_token$tid,
-                                        word = text_data_token$word,
-                                        lemma = text_data_token$lemma,
-                                        pos = text_data_token$pos,
-                                        upos = text_data_token$upos,
-                                        relation = text_data_dependencies$relation,
-                                        tid_target = text_data_dependencies$tid,
-                                        word_dep = text_data_dependencies$word,
-                                        lemma_dep = text_data_dependencies$lemma)
+  text_token_dependencies <- full_join(text_data_dependencies[,c("id", "sid", "tid_target", "relation", "word", "lemma")],
+                                       text_data_token[,c("id", "sid", "tid", "word", "lemma", "pos", "upos")],
+                                       by = c("id"="id", "sid"="sid", "tid_target"="tid"))
+  
+  names(text_token_dependencies) <- c("id", "sid", "tid_target", "relation", "word_dep", "lemma_dep",
+                                      "word", "lemma", "pos", "upos")
+  
   # get all amods and their nouns and all nouns and their targets
   nouns_from_text <- text_token_dependencies[text_token_dependencies$upos%in%c("NOUN", "PROPN"),]
   
@@ -223,11 +215,12 @@ get_noun_modifiers <- function(text_data, lang = "english"){
   
   # TFIDF WEIGHTS
   # get tf-idf for all nouns
-  nouns_tfidf <- cnlp_get_tfidf(nouns_from_text[,c("id", "word")], token_var = "word")
+  nouns_tfidf <- cnlp_get_tfidf(nouns_from_text[,c("id", "word")], token_var = "word",
+                                min_df = min_df)
   # force to matrix and transpose tfidf data
   nouns_tfidf <- t(as.matrix(nouns_tfidf))
   # add word column and turn into dataframe for reshaping
-  nouns_tfidf <- as_data_frame(cbind(nouns_tfidf, word = rownames(nouns_tfidf)))
+  nouns_tfidf <- dplyr::as_data_frame(cbind(nouns_tfidf, word = rownames(nouns_tfidf)))
   # reshape wide to long
   nouns_tfidf <- gather(nouns_tfidf, id, tfidf, -word)
   # add tfidf to output data
@@ -246,23 +239,23 @@ get_noun_modifiers <- function(text_data, lang = "english"){
 
 # THIS FUNCTION TAKES A NOUN-SENTIMENT OBJECT AND RETURNS AN ADJACENCY MATRIX FOR THE AUTHORS
 
-get_author_adjacency <- function(sentiment_data, tfidf_threshold = NULL){
+get_author_adjacency <- function(nouns_from_text, author_var = "name", tfidf_threshold = NULL){
   
   # PROVISIONALLY remove all nans
-  sentiment_data <- sentiment_data[!is.nan(sentiment_data$sentiment),]
+  nouns_from_text <- nouns_from_text[!is.nan(nouns_from_text$sentiment),]
   
   #
   if(!is.null(tfidf_threshold)){
-    sentiment_data <- sentiment_data %>% filter(tfidf>tfidf_threshold)
+    nouns_from_text <- nouns_from_text %>% filter(tfidf>tfidf_threshold)
   }
   
   # to retain compounds, assign compounds to lemma
-  compounds <- grep("[[:alpha:]][[:blank:]][[:alpha:]]", sentiment_data$word)
-  sentiment_data$lemma[compounds] <- sentiment_data$word[compounds]
+  compounds <- grep("[[:alpha:]][[:blank:]][[:alpha:]]", nouns_from_text$word)
+  nouns_from_text$lemma[compounds] <- nouns_from_text$word[compounds]
   
   # PROVISIONALLY only look at positive sentiment
   # WE MIGHT WANT TO ADD AN ARGUMENT TO ADJUST THIS
-  # positive_sentiment <- sentiment_data[sentiment_data$sentiment>0,]
+  # positive_sentiment <- nouns_from_text[nouns_from_text$sentiment>0,]
   
   ## PRODUCE ADJACENCY MATRIX
   # cells should be: average inverse absolute value of average sentiment
@@ -273,11 +266,11 @@ get_author_adjacency <- function(sentiment_data, tfidf_threshold = NULL){
   # 3. HOW DO WE ACCOUNT FOR LARGE NUMBERS OF SHARED WORDS VS FEW STRONGLY SENTIMENTED SHARED WORD
   
   # cast to wide word by author format with average word sentiment per author in cells
-  noun_sentiment_wide <- dcast(sentiment_data[,c("president", "lemma", "sentiment")], 
-                               president~lemma, mean, na.rm = TRUE)
-  rownames(noun_sentiment_wide) <- noun_sentiment_wide$president
-  noun_sentiment_wide$president <- NULL
-
+  noun_sentiment_wide <- dcast(nouns_from_text[,c(rlang::enexpr(author_var), "lemma", "sentiment")], 
+                               paste0(rlang::sym(author_var),"~lemma"), mean, na.rm = TRUE)
+  rownames(noun_sentiment_wide) <- noun_sentiment_wide[[author_var]]
+  noun_sentiment_wide[[author_var]] <- NULL
+  
   
   # create similarity matrix for edge list
   library(cluster)
