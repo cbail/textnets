@@ -52,19 +52,15 @@ twitter_test<-sample_n(elected_tweets, 1000)
 
 twitter_test$text <- iconv(twitter_test$text, "latin1", "UTF-8",sub='')
 
-twitter_test$text <- gsub("http.*", "", twitter_test$text)
-
-twitter_test$text <- gsub("@|#", " ", twitter_test$text)
-
-twitter_test$word_count<-sapply(gregexpr("\\W+", twitter_test$text), length)-1
-
-twitter_test<-twitter_test[twitter_test$word_count>2,]
-
+# twitter_test$text <- gsub("http.*", "", twitter_test$text)
+#
+# twitter_test$text <- gsub("@|#", " ", twitter_test$text)
+#
+# twitter_test$word_count<-sapply(gregexpr("\\W+", twitter_test$text), length)-1
+# 
+# twitter_test<-twitter_test[twitter_test$word_count>2,]
+#
 # twitter_test<-twitter_test[grep("^[[:blank:]]+$", twitter_test$text),]
-
-out <- get_noun_sentiments(twitter_test[, c("text", "twitter_name", "party")])
-
-twitter_out<-get_noun_modifiers(twitter_test[1,])
 
 
 
@@ -145,7 +141,7 @@ get_noun_sentiments <- function(text_data, lang = "english", min_df = 0){
 
 # THIS FUNCTION EXTRACTS ALL NOUNS AND CORRESPONDING MODIFIERS TO GET THEIR SENTIMENT
 
-get_noun_modifiers <- function(text_data, lang = "english", ...){
+get_noun_modifiers <- function(text_data, lang = "english", min_df = 0){
   # SETUP
   # ensure first row is numeric document id
   if(!all(text_data[,1]==1:nrow(text_data))){
@@ -293,6 +289,15 @@ get_author_adjacency <- function(nouns_from_text, author_var = "name", tfidf_thr
 
 # stime_nound <- system.time(parsed_sotu_noun <- get_noun_sentiments(sotu))
 # stime_mod <- system.time(parsed_sotu_mod <- get_noun_modifiers(sotu))
+
+
+twitter_noun_sentiment <- get_noun_sentiments(twitter_test)
+
+noun_sentiment_adjacency <- get_author_adjacency(twitter_noun_sentiment, author_var = "real_name")
+
+twitter_noun_modifiers <- get_noun_modifiers(twitter_test)
+
+noun_modifier_adjacency <- get_author_adjacency(twitter_out, author_var = "real_name")
 
 
 ##
