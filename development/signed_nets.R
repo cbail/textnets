@@ -25,6 +25,7 @@ library(tidyr)
 library(reshape2)
 library(igraph)
 library(ggraph)
+library(stringi)
 
 
 ##
@@ -32,6 +33,7 @@ library(ggraph)
 ##
 
 
+# fictional example data
 text_data <- data_frame(doc_ids = c(1,2,3,4,5),
                         doc_text = c("I don't like walls. However, chain migration is a problem.",
                                      "I hate him. We have to tear down walls and build bridges in their place.",
@@ -40,27 +42,30 @@ text_data <- data_frame(doc_ids = c(1,2,3,4,5),
                                      "We love this place we call home. We should protect it with strong borders."),
                         doc_auth = c("A", "B", "C", "D", "E"))
 
+# State of the Union data
 sotu <- bind_cols(data_frame(sotu_text), sotu_meta)
 
+# Twitter data
+# load("~/Desktop/Dropbox/Textnets Development 2018/Elected Officials Twitter Data.Rdata")
+# load("~/Dropbox/Files for Friedo Jan 29 2018/Parsed Bot Reactions-20180221.Rdata")
 
-load("/Users/christopherandrewbail/Desktop/Dropbox/Textnets Development 2018/Elected Officials Twitter Data.Rdata")
+twitter_test <- sample_n(elected_tweets, 1000)
 
-twitter_test<-sample_n(elected_tweets, 1000)
+# # 
+# # library(stringi)
+# # twitter_test$text<-stri_enc_toutf8(twitter_test$text)
 # 
-# library(stringi)
-# twitter_test$text<-stri_enc_toutf8(twitter_test$text)
-
 twitter_test$text <- iconv(twitter_test$text, "latin1", "UTF-8",sub='')
-
+# 
 # twitter_test$text <- gsub("http.*", "", twitter_test$text)
-#
+# 
 # twitter_test$text <- gsub("@|#", " ", twitter_test$text)
-#
+# 
 # twitter_test$word_count<-sapply(gregexpr("\\W+", twitter_test$text), length)-1
 # 
 # twitter_test<-twitter_test[twitter_test$word_count>2,]
-#
-# twitter_test<-twitter_test[grep("^[[:blank:]]+$", twitter_test$text),]
+# 
+# # twitter_test<-twitter_test[grep("^[[:blank:]]+$", twitter_test$text),]
 
 
 
@@ -72,7 +77,7 @@ twitter_test$text <- iconv(twitter_test$text, "latin1", "UTF-8",sub='')
 
 # THIS FUNCTION EXTRACTS ALL NOUNS AND THE CORRESPONDING SENTIMENT OF THE SENTENCES CONTAINING THEM
 
-get_noun_sentiments <- function(text_data, lang = "english", min_df = 0){
+get_noun_sentiments <- function(text_data, lang = "english", min_df = 0, max_df = 1){
   # SETUP
   # ensure first row is numeric document id
   if(!all(text_data[,1]==1:nrow(text_data))){
@@ -118,7 +123,7 @@ get_noun_sentiments <- function(text_data, lang = "english", min_df = 0){
   # TFIDF WEIGHTS
   # get tf-idf for all nouns
   nouns_tfidf <- cnlp_get_tfidf(nouns_from_text[,c("id", "word")], token_var = "word",
-                                min_df = min_df)
+                                min_df = min_df, max_df = max_df)
   # force to matrix and transpose tfidf data
   nouns_tfidf <- t(as.matrix(nouns_tfidf))
   # add word column and turn into dataframe for reshaping
@@ -141,7 +146,7 @@ get_noun_sentiments <- function(text_data, lang = "english", min_df = 0){
 
 # THIS FUNCTION EXTRACTS ALL NOUNS AND CORRESPONDING MODIFIERS TO GET THEIR SENTIMENT
 
-get_noun_modifiers <- function(text_data, lang = "english", min_df = 0){
+get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df = 1){
   # SETUP
   # ensure first row is numeric document id
   if(!all(text_data[,1]==1:nrow(text_data))){
@@ -162,16 +167,13 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0){
   text_data_token <- cnlp_get_token(text_data_annotated)
   # extract dependencies from annotation
   text_data_dependencies <- cnlp_get_dependency(text_data_annotated, get_token = TRUE)
-  # combine tokens and dependencies 
-  text_token_dependencies <- full_join(text_data_dependencies[,c("id", "sid", "tid_target", "relation", "word", "lemma")],
-                                       text_data_token[,c("id", "sid", "tid", "word", "lemma", "pos", "upos")],
-                                       by = c("id"="id", "sid"="sid", "tid_target"="tid"))
-  
-  names(text_token_dependencies) <- c("id", "sid", "tid_target", "relation", "word_dep", "lemma_dep",
-                                      "word", "lemma", "pos", "upos")
-  
-  # get all amods and their nouns and all nouns and their targets
-  nouns_from_text <- text_token_dependencies[text_token_dependencies$upos%in%c("NOUN", "PROPN"),]
+  # add relations to tokens 
+  text_data_token <- full_join(text_data_token[,c("id", "sid", "tid", "word", "lemma", "pos", "upos")],
+                                       text_data_dependencies[,c("id", "sid", "tid_target", "relation")],
+                                       by = c("id"="id", "sid"="sid", "tid"="tid_target"))
+  # 
+  # names(text_token_dependencies) <- c("id", "sid", "tid", "word", "lemma", "pos", "upos",
+  #                                     "relation")
   
   # SENTIMENT ANALYSIS
   ## initial idea:
@@ -184,15 +186,25 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0){
   # text_data_sub <- union(text_to_keep, targets_to_keep) %>% arrange(id, sid, tid)
   
   # now: get sentiment for noun targets, then add amod sentiment
+  # get nouns and their sentiment
+  nouns_from_text <- text_data_token[text_data_token$upos%in%c("NOUN", "PROPN"), 
+                                     c("id", "sid", "tid", "word", "lemma", "upos", "pos", "relation")]
   nouns_from_text$noun_sent <- NA
-  nouns_from_text$noun_sent[nouns_from_text$upos%in%c("NOUN", "PROPN")] <- get_sentiment(nouns_from_text$lemma_dep[nouns_from_text$upos%in%c("NOUN", "PROPN")],language = lang)
-  # get amods and their referents
-  amods_from_text <- text_token_dependencies[text_token_dependencies$relation=="amod", c("id", "sid", "tid_target", "lemma")]
-  names(amods_from_text) <- c("id", "sid", "tid", "amod")
-  # add amods to nouns
+  nouns_from_text$noun_sent <- get_sentiment(nouns_from_text$lemma, language = lang)
+  # get amods and their sentiment
+  amods_from_text <- text_data_dependencies[text_data_dependencies$relation=="amod", c("id", "sid", "tid", "word_target", "lemma_target")]
+  names(amods_from_text) <- c("id", "sid", "tid", "amod", "amod_lemma")
+  amods_from_text$amod_sent <- NA
+  amods_from_text$amod_sent <- get_sentiment(amods_from_text$amod_lemma, language = lang)
+  # combine multiple amods to avoid multiplying nouns
+  # following this example: https://stackoverflow.com/a/41001124
+  amods_from_text  <- amods_from_text %>%
+    group_by(id, sid, tid) %>%
+    summarise(amod = paste(amod, collapse = ", "),
+              amod_lemma = paste(amod_lemma, collapse = ", "), 
+              amod_sent = mean(amod_sent))
+  # combine nouns and amods
   nouns_from_text <- left_join(nouns_from_text, amods_from_text)
-  nouns_from_text$amod_sent <- NA
-  nouns_from_text$amod_sent[!is.na(nouns_from_text$amod)] <- get_sentiment(nouns_from_text$amod[!is.na(nouns_from_text$amod)], language = lang)
   
   # calculate combined sentiment
   # need to figure out how to combine sentiments sensibly
@@ -203,22 +215,45 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0){
   
   # NOUN COMPOUNDS
   # retrieve noun compounds
+  # row numbers of all compound elements
   noun_compound <- which(nouns_from_text$relation=="compound")
-  nouns_from_text$word[noun_compound+1] <- paste(nouns_from_text$word[noun_compound],
-                                                 nouns_from_text$word[noun_compound+1])
-  # remove first element from compounds
+  # list of consecutive compound elements
+  compound_elements <- split(noun_compound, cumsum(c(1, diff(noun_compound) != 1)))
+  # vector of compound bases
+  compound_bases <- mapply(`[[`, compound_elements, lengths(compound_elements))+1
+  # add compound bases to compound list
+  all_compound_elements <- mapply(c, compound_elements, compound_bases)
+  # retrieve all text elements and collapse them to get compound nouns
+  compound_nouns <- sapply(all_compound_elements, function(x) paste(nouns_from_text$lemma[x], collapse = " "))
+  # retrieve all text elements and collapse them to get all amods for compounds
+  compound_amods <- sapply(all_compound_elements, function(x) paste(nouns_from_text$amod_lemma[x], collapse = ", "))
+  compound_amods <- gsub("NA, |NA", "", compound_amods)
+  compound_amods <- gsub("^$", NA, compound_amods)
+  # combine all noun, amod, and total sentiments for compounds
+  compound_noun_sent <- sapply(all_compound_elements, function(x) sum(nouns_from_text$noun_sent[x], na.rm = TRUE))
+  compound_amod_sent <- sapply(all_compound_elements, function(x) sum(nouns_from_text$amod_sent[x], na.rm = TRUE))
+  compound_sentiment <- sapply(all_compound_elements, function(x) sum(nouns_from_text$sentiment[x], na.rm = TRUE))
+  
+  # assign compound nouns, compound amods, and respective sentiments to compound bases 
+  nouns_from_text$lemma[compound_bases] <- compound_nouns
+  nouns_from_text$amod_lemma[compound_bases] <- compound_amods
+  nouns_from_text$noun_sent[compound_bases] <- compound_noun_sent
+  nouns_from_text$amod_sent[compound_bases] <- compound_amod_sent
+  nouns_from_text$sentiment[compound_bases] <- compound_sentiment
+  
+  # remove compound elements from dataframe
   nouns_from_text <- nouns_from_text %>% filter(relation!="compound")
   
   # TFIDF WEIGHTS
   # get tf-idf for all nouns
-  nouns_tfidf <- cnlp_get_tfidf(nouns_from_text[,c("id", "word")], token_var = "word",
-                                min_df = min_df)
+  nouns_tfidf <- cnlp_get_tfidf(nouns_from_text[,c("id", "lemma")], token_var = "lemma",
+                                min_df = min_df, max_df = max_df)
   # force to matrix and transpose tfidf data
   nouns_tfidf <- t(as.matrix(nouns_tfidf))
   # add word column and turn into dataframe for reshaping
-  nouns_tfidf <- dplyr::as_data_frame(cbind(nouns_tfidf, word = rownames(nouns_tfidf)))
+  nouns_tfidf <- dplyr::as_data_frame(cbind(nouns_tfidf, lemma = rownames(nouns_tfidf)))
   # reshape wide to long
-  nouns_tfidf <- gather(nouns_tfidf, id, tfidf, -word)
+  nouns_tfidf <- gather(nouns_tfidf, id, tfidf, -lemma)
   # add tfidf to output data
   nouns_from_text <- left_join(nouns_from_text, nouns_tfidf)
   
@@ -235,7 +270,7 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0){
 
 # THIS FUNCTION TAKES A NOUN-SENTIMENT OBJECT AND RETURNS AN ADJACENCY MATRIX FOR THE AUTHORS
 
-get_author_adjacency <- function(nouns_from_text, author_var = "name", tfidf_threshold = NULL){
+get_author_adjacency <- function(nouns_from_text, author_var = "name", tfidf_threshold = NULL, min_authors = 1){
   
   # PROVISIONALLY remove all nans
   nouns_from_text <- nouns_from_text[!is.nan(nouns_from_text$sentiment),]
@@ -246,8 +281,8 @@ get_author_adjacency <- function(nouns_from_text, author_var = "name", tfidf_thr
   }
   
   # to retain compounds, assign compounds to lemma
-  compounds <- grep("[[:alpha:]][[:blank:]][[:alpha:]]", nouns_from_text$word)
-  nouns_from_text$lemma[compounds] <- nouns_from_text$word[compounds]
+  # compounds <- grep("[[:alpha:]][[:blank:]][[:alpha:]]", nouns_from_text$word)
+  # nouns_from_text$lemma[compounds] <- nouns_from_text$word[compounds]
   
   # PROVISIONALLY only look at positive sentiment
   # WE MIGHT WANT TO ADD AN ARGUMENT TO ADJUST THIS
@@ -267,14 +302,19 @@ get_author_adjacency <- function(nouns_from_text, author_var = "name", tfidf_thr
   rownames(noun_sentiment_wide) <- noun_sentiment_wide[[author_var]]
   noun_sentiment_wide[[author_var]] <- NULL
   
+  # remove nouns used by only one author
+  noun_sentiment_wide <- Filter(function(x) length(which(!is.nan(x)))>min_authors, noun_sentiment_wide)
   
   # create similarity matrix for edge list
-  library(cluster)
-  
-  out <- as.matrix(daisy(noun_sentiment_wide))
-  out <- 1/out
-  out <- replace_na(out, 0)
-  out <- as.matrix(out)
+  author_dissimilarity <- dist(noun_sentiment_wide)
+  author_dissimilarity <- as.matrix(author_dissimilarity)
+  dissimilarity_scores <- as.vector(author_dissimilarity)
+  similarity_scores <- -(1/as.vector(scale(dissimilarity_scores)))
+  author_similarity <- matrix(similarity_scores, 
+                              nrow = nrow(noun_sentiment_wide),
+                              dimnames = list(rownames(noun_sentiment_wide), rownames(noun_sentiment_wide)))
+  author_similarity <- replace_na(author_similarity, 0)
+  return(author_similarity)
 }
 
 
