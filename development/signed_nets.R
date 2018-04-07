@@ -51,21 +51,14 @@ sotu <- bind_cols(data_frame(sotu_text), sotu_meta)
 
 twitter_test <- sample_n(elected_tweets, 1000)
 
-# # 
-# # library(stringi)
-# # twitter_test$text<-stri_enc_toutf8(twitter_test$text)
-# 
-twitter_test$text <- iconv(twitter_test$text, "latin1", "UTF-8",sub='')
-# 
-# twitter_test$text <- gsub("http.*", "", twitter_test$text)
-# 
-# twitter_test$text <- gsub("@|#", " ", twitter_test$text)
-# 
-# twitter_test$word_count<-sapply(gregexpr("\\W+", twitter_test$text), length)-1
-# 
-# twitter_test<-twitter_test[twitter_test$word_count>2,]
-# 
-# # twitter_test<-twitter_test[grep("^[[:blank:]]+$", twitter_test$text),]
+# remove twitter internal links for abbreviated tweets and line breaks
+twitter_test$text <- gsub("https://t.co/.*$|http://t.co/.*$|\\n|#", "", twitter_test$text)
+
+# delete emojis and symbols
+twitter_test$text <- iconv(twitter_test$text, "ASCII", "UTF-8",sub='')
+
+# sub &amp for and
+twitter_test$text <- gsub("&amp;", "and", twitter_test$text)
 
 
 
@@ -146,7 +139,7 @@ get_noun_sentiments <- function(text_data, lang = "english", min_df = 0, max_df 
 
 # THIS FUNCTION EXTRACTS ALL NOUNS AND CORRESPONDING MODIFIERS TO GET THEIR SENTIMENT
 
-get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df = 1){
+get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df = 1, verbose = FALSE){
   # SETUP
   # ensure first row is numeric document id
   if(!all(text_data[,1]==1:nrow(text_data))){
@@ -160,17 +153,41 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
   # set up udpipe backend with language support
   cnlp_init_udpipe(lang)
   
+  if(isTRUE(verbose)){
+  print(paste0("Setup complete at ", eval(Sys.time())))
+    }
+  
   # ANNOTATION, TOKENIZATION, AND DEPENDENCIES
   # annotate texts
   text_data_annotated <- cnlp_annotate(text_data)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Annotation complete at ", eval(Sys.time())))
+  }
+  
   # extract tokens from annotation
   text_data_token <- cnlp_get_token(text_data_annotated)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Tokens extracted at ", eval(Sys.time())))
+    }
+  
   # extract dependencies from annotation
   text_data_dependencies <- cnlp_get_dependency(text_data_annotated, get_token = TRUE)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Dependencies extracted at ", eval(Sys.time())))
+    }
+  
   # add relations to tokens 
   text_data_token <- full_join(text_data_token[,c("id", "sid", "tid", "word", "lemma", "pos", "upos")],
-                                       text_data_dependencies[,c("id", "sid", "tid_target", "relation")],
-                                       by = c("id"="id", "sid"="sid", "tid"="tid_target"))
+                               text_data_dependencies[,c("id", "sid", "tid_target", "relation")],
+                               by = c("id"="id", "sid"="sid", "tid"="tid_target"))
+  
+  if(isTRUE(verbose)){
+    print(paste0("Dependencies added to tokens at", eval(Sys.time())))
+    }
+  
   # 
   # names(text_token_dependencies) <- c("id", "sid", "tid", "word", "lemma", "pos", "upos",
   #                                     "relation")
@@ -189,13 +206,33 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
   # get nouns and their sentiment
   nouns_from_text <- text_data_token[text_data_token$upos%in%c("NOUN", "PROPN"), 
                                      c("id", "sid", "tid", "word", "lemma", "upos", "pos", "relation")]
+  
+  if(isTRUE(verbose)){
+    print(paste0("Noun tokens subsetted at ", eval(Sys.time())))
+    }
+  
   nouns_from_text$noun_sent <- NA
   nouns_from_text$noun_sent <- get_sentiment(nouns_from_text$lemma, language = lang)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Noun sentiment complete at ", eval(Sys.time())))
+    }
+  
   # get amods and their sentiment
   amods_from_text <- text_data_dependencies[text_data_dependencies$relation=="amod", c("id", "sid", "tid", "word_target", "lemma_target")]
+  
+  if(isTRUE(verbose)){
+    print(paste0("Amod token subset at ", eval(Sys.time())))
+    }
+  
   names(amods_from_text) <- c("id", "sid", "tid", "amod", "amod_lemma")
   amods_from_text$amod_sent <- NA
   amods_from_text$amod_sent <- get_sentiment(amods_from_text$amod_lemma, language = lang)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Amod sentiment completed at ", eval(Sys.time())))
+    }
+  
   # combine multiple amods to avoid multiplying nouns
   # following this example: https://stackoverflow.com/a/41001124
   amods_from_text  <- amods_from_text %>%
@@ -203,8 +240,18 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
     summarise(amod = paste(amod, collapse = ", "),
               amod_lemma = paste(amod_lemma, collapse = ", "), 
               amod_sent = mean(amod_sent))
+  
+  if(isTRUE(verbose)){
+    print(paste0("Amods combined at ", eval(Sys.time())))
+    }
+  
   # combine nouns and amods
   nouns_from_text <- left_join(nouns_from_text, amods_from_text)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Amods added to nouns at ", eval(Sys.time())))
+    }
+  
   
   # calculate combined sentiment
   # need to figure out how to combine sentiments sensibly
@@ -212,6 +259,11 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
   nouns_from_text$sentiment <- ifelse(is.na(nouns_from_text$amod),
                                       nouns_from_text$noun_sent,
                                       nouns_from_text$noun_sent + nouns_from_text$amod_sent)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Sentiment combined at ", eval(Sys.time())))
+    }
+  
   
   # NOUN COMPOUNDS
   # retrieve noun compounds
@@ -225,14 +277,29 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
   all_compound_elements <- mapply(c, compound_elements, compound_bases)
   # retrieve all text elements and collapse them to get compound nouns
   compound_nouns <- sapply(all_compound_elements, function(x) paste(nouns_from_text$lemma[x], collapse = " "))
+  
+  if(isTRUE(verbose)){
+    print(paste0("Compound nouns gathered at ", eval(Sys.time())))
+    }
+  
   # retrieve all text elements and collapse them to get all amods for compounds
   compound_amods <- sapply(all_compound_elements, function(x) paste(nouns_from_text$amod_lemma[x], collapse = ", "))
   compound_amods <- gsub("NA, |NA", "", compound_amods)
   compound_amods <- gsub("^$", NA, compound_amods)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Amods for compound nouns gathered at ", eval(Sys.time())))
+    }
+  
   # combine all noun, amod, and total sentiments for compounds
   compound_noun_sent <- sapply(all_compound_elements, function(x) sum(nouns_from_text$noun_sent[x], na.rm = TRUE))
   compound_amod_sent <- sapply(all_compound_elements, function(x) sum(nouns_from_text$amod_sent[x], na.rm = TRUE))
   compound_sentiment <- sapply(all_compound_elements, function(x) sum(nouns_from_text$sentiment[x], na.rm = TRUE))
+  
+  if(isTRUE(verbose)){
+    print(paste0("Sentiment for compounds computed at ", eval(Sys.time())))
+    }
+  
   
   # assign compound nouns, compound amods, and respective sentiments to compound bases 
   nouns_from_text$lemma[compound_bases] <- compound_nouns
@@ -241,30 +308,65 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
   nouns_from_text$amod_sent[compound_bases] <- compound_amod_sent
   nouns_from_text$sentiment[compound_bases] <- compound_sentiment
   
+  if(isTRUE(verbose)){
+    print(paste0("Compound elements added at ", eval(Sys.time())))
+    }
+  
+  
   # remove compound elements from dataframe
   nouns_from_text <- nouns_from_text %>% filter(relation!="compound")
+  
+  if(isTRUE(verbose)){
+    print(paste0("Compound rows removed at ", eval(Sys.time())))
+    }
+  
   
   # TFIDF WEIGHTS
   # get tf-idf for all nouns
   nouns_tfidf <- cnlp_get_tfidf(nouns_from_text[,c("id", "lemma")], token_var = "lemma",
                                 min_df = min_df, max_df = max_df)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Tfidf computed at ", eval(Sys.time())))
+    }
+  
   # force to matrix and transpose tfidf data
   nouns_tfidf <- t(as.matrix(nouns_tfidf))
   # add word column and turn into dataframe for reshaping
   nouns_tfidf <- dplyr::as_data_frame(cbind(nouns_tfidf, lemma = rownames(nouns_tfidf)))
   # reshape wide to long
   nouns_tfidf <- gather(nouns_tfidf, id, tfidf, -lemma)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Tfidf reshaped at ", eval(Sys.time())))
+    }
+  
   # add tfidf to output data
   nouns_from_text <- left_join(nouns_from_text, nouns_tfidf)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Tfidf joined at ", eval(Sys.time())))
+    }
+  
   
   # add meta data
   if(ncol(text_data)>2){
     nouns_from_text$id <- as.numeric(nouns_from_text$id)
     nouns_from_text <- full_join(nouns_from_text, text_data[,c(1,3:ncol(text_data))], by = "id")
+    
+    if(isTRUE(verbose)){
+      print(paste0("Meta data added at ", eval(Sys.time())))
+      }
+    
   }
   
   # return nouns
   return(nouns_from_text)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Run complete at ", eval(Sys.time())))
+    }
+  
 }
 
 
@@ -297,7 +399,7 @@ get_author_adjacency <- function(nouns_from_text, author_var = "name", tfidf_thr
   # 3. HOW DO WE ACCOUNT FOR LARGE NUMBERS OF SHARED WORDS VS FEW STRONGLY SENTIMENTED SHARED WORD
   
   # cast to wide word by author format with average word sentiment per author in cells
-  noun_sentiment_wide <- dcast(nouns_from_text[,c(rlang::enexpr(author_var), "lemma", "sentiment")], 
+  noun_sentiment_wide <- dcast(nouns_from_text[,c(author_var, "lemma", "sentiment")], 
                                paste0(rlang::sym(author_var),"~lemma"), mean, na.rm = TRUE)
   rownames(noun_sentiment_wide) <- noun_sentiment_wide[[author_var]]
   noun_sentiment_wide[[author_var]] <- NULL
@@ -306,14 +408,25 @@ get_author_adjacency <- function(nouns_from_text, author_var = "name", tfidf_thr
   noun_sentiment_wide <- Filter(function(x) length(which(!is.nan(x)))>min_authors, noun_sentiment_wide)
   
   # create similarity matrix for edge list
+  # first, calculate euclidean distances distances
   author_dissimilarity <- dist(noun_sentiment_wide)
+  # turn dist object to matrix
   author_dissimilarity <- as.matrix(author_dissimilarity)
+  # turn matrix to vector
   dissimilarity_scores <- as.vector(author_dissimilarity)
+  # second, standardize, invert, and flip sign to compute similarity
   similarity_scores <- -(1/as.vector(scale(dissimilarity_scores)))
+  # third, replace NAs with 0
+  similarity_scores[is.na(similarity_scores)] <- 0
+  # # fourth, rescale similarity scores to 0 to 1
+  # similarity_scores <- mapply(function(x,y,z){(x-y)/(z-y)}, 
+  #                             similarity_scores, 
+  #                             min(similarity_scores), 
+  #                             max(similarity_scores))
+  # populate similarity matrix
   author_similarity <- matrix(similarity_scores, 
                               nrow = nrow(noun_sentiment_wide),
                               dimnames = list(rownames(noun_sentiment_wide), rownames(noun_sentiment_wide)))
-  author_similarity <- replace_na(author_similarity, 0)
   return(author_similarity)
 }
 
