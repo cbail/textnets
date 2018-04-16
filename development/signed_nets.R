@@ -70,7 +70,7 @@ twitter_test$text <- gsub("&amp;", "and", twitter_test$text)
 
 # THIS FUNCTION EXTRACTS ALL NOUNS AND THE CORRESPONDING SENTIMENT OF THE SENTENCES CONTAINING THEM
 
-get_noun_sentiments <- function(text_data, lang = "english", min_df = 0, max_df = 1){
+get_noun_sentiments <- function(text_data, lang = "english", min_df = 0, max_df = 1, verbose = FALSE){
   # SETUP
   # ensure first row is numeric document id
   if(!all(text_data[,1]==1:nrow(text_data))){
@@ -84,56 +84,140 @@ get_noun_sentiments <- function(text_data, lang = "english", min_df = 0, max_df 
   # set up udpipe backend with language support
   cnlp_init_udpipe(lang)
   
+  if(isTRUE(verbose)){
+    print(paste0("Setup complete at ", Sys.time()))
+  }
+  
   # ANNOTATION, TOKENIZATION, AND DEPENDENCIES
   # annotate texts
   text_data_annotated <- cnlp_annotate(text_data)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Annotation complete at ", Sys.time()))
+  }
+  
   # extract tokens from annotation
   text_data_token <- cnlp_get_token(text_data_annotated)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Tokens extracted at ", Sys.time()))
+  }
+  
   # extract dependencies from annotation
   text_data_dependencies <- cnlp_get_dependency(text_data_annotated, get_token = TRUE)
-  # combine tokens and depencies 
-  text_token_dependencies <- full_join(text_data_dependencies[,c("id", "sid", "tid_target", "relation")],
-                                       text_data_token[,c("id", "sid", "tid", "word", "lemma", "pos", "upos")],
-                                       by = c("id"="id", "sid"="sid", "tid_target"="tid"))
+
+  if(isTRUE(verbose)){
+    print(paste0("Dependencies extracted at ", Sys.time()))
+  }
+
+  # combine tokens and dependencies
+  text_token_dependencies <- full_join(text_data_token[,c("id", "sid", "tid", "word", "lemma", "pos", "upos")],
+                                       text_data_dependencies[,c("id", "sid", "tid_target", "relation")],
+                                       by = c("id"="id", "sid"="sid", "tid"="tid_target"))
+  
+  if(isTRUE(verbose)){
+    print(paste0("Dependencies added to tokens at", Sys.time()))
+  }
   
   # SENTIMENT ANALYSIS
   # get sentiment for lemmatized words
-  text_token_dependencies$sentiment <- get_sentiment(text_token_dependencies$lemma)
+  text_token_dependencies$sentiment <- get_sentiment(text_token_dependencies$lemma, language = lang)
   # get average sentence sentiment (among words with sentiment score)
   text_token_dependencies <- text_token_dependencies %>% group_by(id, sid) %>%
     mutate(ave_sent = mean(sentiment[sentiment!=0], na.rm = TRUE))
+  # create vector with words on which sentence level sentiment is based for better traceability
+  text_token_dependencies <- text_token_dependencies %>%
+    group_by(id, sid) %>%
+    mutate(sentiment_words = paste(lemma[sentiment!=0], collapse = ", "))
+  
+  if(isTRUE(verbose)){
+    print(paste0("Sentiment analysis complete at ", Sys.time()))
+  }
+  
   # subset to nouns which are our edges
-  text_nouns <- text_token_dependencies %>% filter(upos%in%c("NOUN", "PROPN"))
+  nouns_from_text <- text_token_dependencies %>% filter(upos%in%c("NOUN", "PROPN"))
+  
+  if(isTRUE(verbose)){
+    print(paste0("Noun tokens subsetted at ", Sys.time()))
+  }
   
   # NOUN COMPOUNDS
   # retrieve noun compounds
-  noun_compound <- which(text_nouns$relation=="compound")
-  text_nouns$word[noun_compound+1] <- paste(text_nouns$word[noun_compound],
-                                            text_nouns$word[noun_compound+1])
-  # remove compounds
-  nouns_from_text <- text_nouns %>% filter(relation!="compound")
+  # row numbers of all compound elements
+  noun_compound <- which(nouns_from_text$relation=="compound")
+  # list of consecutive compound elements
+  compound_elements <- split(noun_compound, cumsum(c(1, diff(noun_compound) != 1)))
+  # vector of compound bases
+  compound_bases <- mapply(`[[`, compound_elements, lengths(compound_elements))+1
+  # add compound bases to compound list
+  all_compound_elements <- mapply(c, compound_elements, compound_bases, SIMPLIFY = FALSE)
+  # retrieve all text elements and collapse them to get compound nouns
+  compound_nouns <- sapply(all_compound_elements, function(x) paste0(nouns_from_text$lemma[x], collapse = " "))
+  
+  if(isTRUE(verbose)){
+    print(paste0("Compound nouns gathered at ", Sys.time()))
+  }
+  
+  # assign compound nouns to compound bases 
+  nouns_from_text$lemma[compound_bases] <- compound_nouns
+  
+  if(isTRUE(verbose)){
+    print(paste0("Compound elements added at ", Sys.time()))
+  }
+  
+  # remove compound elements from dataframe
+  nouns_from_text <- nouns_from_text %>% filter(relation!="compound")
+  
+  if(isTRUE(verbose)){
+    print(paste0("Compound rows removed at ", Sys.time()))
+  }
+  
   
   # TFIDF WEIGHTS
   # get tf-idf for all nouns
   nouns_tfidf <- cnlp_get_tfidf(nouns_from_text[,c("id", "word")], token_var = "word",
                                 min_df = min_df, max_df = max_df)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Tfidf computed at ", Sys.time()))
+  }
+  
   # force to matrix and transpose tfidf data
   nouns_tfidf <- t(as.matrix(nouns_tfidf))
   # add word column and turn into dataframe for reshaping
   nouns_tfidf <- dplyr::as_data_frame(cbind(nouns_tfidf, word = rownames(nouns_tfidf)))
   # reshape wide to long
   nouns_tfidf <- gather(nouns_tfidf, id, tfidf, -word)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Tfidf reshaped at ", Sys.time()))
+  }
+  
   # add tfidf to output data
   nouns_from_text <- left_join(nouns_from_text, nouns_tfidf)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Tfidf joined at ", Sys.time()))
+  }
   
   # ADD META DATA
   if(ncol(text_data)>2){
     nouns_from_text$id <- as.numeric(nouns_from_text$id)
     nouns_from_text <- full_join(nouns_from_text, text_data[,c(1,3:ncol(text_data))], by = "id")
+    
+    if(isTRUE(verbose)){
+      print(paste0("Meta data added at ", Sys.time()))
+    }
+    
   }
   
   # return nouns
   return(nouns_from_text)
+  
+  if(isTRUE(verbose)){
+    print(paste0("Run complete at ", Sys.time()))
+  }
+  
 }
 
 
@@ -154,30 +238,30 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
   cnlp_init_udpipe(lang)
   
   if(isTRUE(verbose)){
-  print(paste0("Setup complete at ", eval(Sys.time())))
-    }
+    print(paste0("Setup complete at ", Sys.time()))
+  }
   
   # ANNOTATION, TOKENIZATION, AND DEPENDENCIES
   # annotate texts
   text_data_annotated <- cnlp_annotate(text_data)
   
   if(isTRUE(verbose)){
-    print(paste0("Annotation complete at ", eval(Sys.time())))
+    print(paste0("Annotation complete at ", Sys.time()))
   }
   
   # extract tokens from annotation
   text_data_token <- cnlp_get_token(text_data_annotated)
   
   if(isTRUE(verbose)){
-    print(paste0("Tokens extracted at ", eval(Sys.time())))
-    }
+    print(paste0("Tokens extracted at ", Sys.time()))
+  }
   
   # extract dependencies from annotation
   text_data_dependencies <- cnlp_get_dependency(text_data_annotated, get_token = TRUE)
   
   if(isTRUE(verbose)){
-    print(paste0("Dependencies extracted at ", eval(Sys.time())))
-    }
+    print(paste0("Dependencies extracted at ", Sys.time()))
+  }
   
   # add relations to tokens 
   text_data_token <- full_join(text_data_token[,c("id", "sid", "tid", "word", "lemma", "pos", "upos")],
@@ -185,8 +269,8 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
                                by = c("id"="id", "sid"="sid", "tid"="tid_target"))
   
   if(isTRUE(verbose)){
-    print(paste0("Dependencies added to tokens at", eval(Sys.time())))
-    }
+    print(paste0("Dependencies added to tokens at", Sys.time()))
+  }
   
   # 
   # names(text_token_dependencies) <- c("id", "sid", "tid", "word", "lemma", "pos", "upos",
@@ -208,30 +292,30 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
                                      c("id", "sid", "tid", "word", "lemma", "upos", "pos", "relation")]
   
   if(isTRUE(verbose)){
-    print(paste0("Noun tokens subsetted at ", eval(Sys.time())))
-    }
+    print(paste0("Noun tokens subsetted at ", Sys.time()))
+  }
   
   nouns_from_text$noun_sent <- NA
   nouns_from_text$noun_sent <- get_sentiment(nouns_from_text$lemma, language = lang)
   
   if(isTRUE(verbose)){
-    print(paste0("Noun sentiment complete at ", eval(Sys.time())))
-    }
+    print(paste0("Noun sentiment complete at ", Sys.time()))
+  }
   
   # get amods and their sentiment
   amods_from_text <- text_data_dependencies[text_data_dependencies$relation=="amod", c("id", "sid", "tid", "word_target", "lemma_target")]
   
   if(isTRUE(verbose)){
-    print(paste0("Amod token subset at ", eval(Sys.time())))
-    }
+    print(paste0("Amod token subset at ", Sys.time()))
+  }
   
   names(amods_from_text) <- c("id", "sid", "tid", "amod", "amod_lemma")
   amods_from_text$amod_sent <- NA
   amods_from_text$amod_sent <- get_sentiment(amods_from_text$amod_lemma, language = lang)
   
   if(isTRUE(verbose)){
-    print(paste0("Amod sentiment completed at ", eval(Sys.time())))
-    }
+    print(paste0("Amod sentiment completed at ", Sys.time()))
+  }
   
   # combine multiple amods to avoid multiplying nouns
   # following this example: https://stackoverflow.com/a/41001124
@@ -242,15 +326,15 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
               amod_sent = mean(amod_sent))
   
   if(isTRUE(verbose)){
-    print(paste0("Amods combined at ", eval(Sys.time())))
-    }
+    print(paste0("Amods combined at ", Sys.time()))
+  }
   
   # combine nouns and amods
   nouns_from_text <- left_join(nouns_from_text, amods_from_text)
   
   if(isTRUE(verbose)){
-    print(paste0("Amods added to nouns at ", eval(Sys.time())))
-    }
+    print(paste0("Amods added to nouns at ", Sys.time()))
+  }
   
   
   # calculate combined sentiment
@@ -261,8 +345,8 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
                                       nouns_from_text$noun_sent + nouns_from_text$amod_sent)
   
   if(isTRUE(verbose)){
-    print(paste0("Sentiment combined at ", eval(Sys.time())))
-    }
+    print(paste0("Sentiment combined at ", Sys.time()))
+  }
   
   
   # NOUN COMPOUNDS
@@ -274,13 +358,13 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
   # vector of compound bases
   compound_bases <- mapply(`[[`, compound_elements, lengths(compound_elements))+1
   # add compound bases to compound list
-  all_compound_elements <- mapply(c, compound_elements, compound_bases)
+  all_compound_elements <- mapply(c, compound_elements, compound_bases, SIMPLIFY = FALSE)
   # retrieve all text elements and collapse them to get compound nouns
   compound_nouns <- sapply(all_compound_elements, function(x) paste(nouns_from_text$lemma[x], collapse = " "))
   
   if(isTRUE(verbose)){
-    print(paste0("Compound nouns gathered at ", eval(Sys.time())))
-    }
+    print(paste0("Compound nouns gathered at ", Sys.time()))
+  }
   
   # retrieve all text elements and collapse them to get all amods for compounds
   compound_amods <- sapply(all_compound_elements, function(x) paste(nouns_from_text$amod_lemma[x], collapse = ", "))
@@ -288,8 +372,8 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
   compound_amods <- gsub("^$", NA, compound_amods)
   
   if(isTRUE(verbose)){
-    print(paste0("Amods for compound nouns gathered at ", eval(Sys.time())))
-    }
+    print(paste0("Amods for compound nouns gathered at ", Sys.time()))
+  }
   
   # combine all noun, amod, and total sentiments for compounds
   compound_noun_sent <- sapply(all_compound_elements, function(x) sum(nouns_from_text$noun_sent[x], na.rm = TRUE))
@@ -297,8 +381,8 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
   compound_sentiment <- sapply(all_compound_elements, function(x) sum(nouns_from_text$sentiment[x], na.rm = TRUE))
   
   if(isTRUE(verbose)){
-    print(paste0("Sentiment for compounds computed at ", eval(Sys.time())))
-    }
+    print(paste0("Sentiment for compounds computed at ", Sys.time()))
+  }
   
   
   # assign compound nouns, compound amods, and respective sentiments to compound bases 
@@ -309,16 +393,16 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
   nouns_from_text$sentiment[compound_bases] <- compound_sentiment
   
   if(isTRUE(verbose)){
-    print(paste0("Compound elements added at ", eval(Sys.time())))
-    }
+    print(paste0("Compound elements added at ", Sys.time()))
+  }
   
   
   # remove compound elements from dataframe
   nouns_from_text <- nouns_from_text %>% filter(relation!="compound")
   
   if(isTRUE(verbose)){
-    print(paste0("Compound rows removed at ", eval(Sys.time())))
-    }
+    print(paste0("Compound rows removed at ", Sys.time()))
+  }
   
   
   # TFIDF WEIGHTS
@@ -327,8 +411,8 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
                                 min_df = min_df, max_df = max_df)
   
   if(isTRUE(verbose)){
-    print(paste0("Tfidf computed at ", eval(Sys.time())))
-    }
+    print(paste0("Tfidf computed at ", Sys.time()))
+  }
   
   # force to matrix and transpose tfidf data
   nouns_tfidf <- t(as.matrix(nouns_tfidf))
@@ -338,15 +422,15 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
   nouns_tfidf <- gather(nouns_tfidf, id, tfidf, -lemma)
   
   if(isTRUE(verbose)){
-    print(paste0("Tfidf reshaped at ", eval(Sys.time())))
-    }
+    print(paste0("Tfidf reshaped at ", Sys.time()))
+  }
   
   # add tfidf to output data
   nouns_from_text <- left_join(nouns_from_text, nouns_tfidf)
   
   if(isTRUE(verbose)){
-    print(paste0("Tfidf joined at ", eval(Sys.time())))
-    }
+    print(paste0("Tfidf joined at ", Sys.time()))
+  }
   
   
   # add meta data
@@ -355,8 +439,8 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
     nouns_from_text <- full_join(nouns_from_text, text_data[,c(1,3:ncol(text_data))], by = "id")
     
     if(isTRUE(verbose)){
-      print(paste0("Meta data added at ", eval(Sys.time())))
-      }
+      print(paste0("Meta data added at ", Sys.time()))
+    }
     
   }
   
@@ -364,8 +448,8 @@ get_noun_modifiers <- function(text_data, lang = "english", min_df = 0, max_df =
   return(nouns_from_text)
   
   if(isTRUE(verbose)){
-    print(paste0("Run complete at ", eval(Sys.time())))
-    }
+    print(paste0("Run complete at ", Sys.time()))
+  }
   
 }
 
@@ -428,6 +512,41 @@ get_author_adjacency <- function(nouns_from_text, author_var = "name", tfidf_thr
                               nrow = nrow(noun_sentiment_wide),
                               dimnames = list(rownames(noun_sentiment_wide), rownames(noun_sentiment_wide)))
   return(author_similarity)
+}
+
+
+# THIS FUNCTION TAKES A NOUN-SENTIMENT OBJECT AND RETURNS THE MOST IMPORTANT WORDS SHARED BY SPECIFIED AUTHORS
+
+get_shared_nouns <- function(nouns_from_text, author_var = NULL, authors = NULL, nouns = 50){
+  # check that all required arguments specified
+  if(is.null(author_var)){
+    stop("Author variable `author_var` needs to be specified.")
+  }
+  if(is.null(authors)){
+    stop("Author names `authors` need to be specified.")
+  }
+  
+  # subset noun-sentiment object to specified authors
+  author_nouns <- nouns_from_text %>% filter_(paste(author_var,"%in% authors"))
+  
+  # cast to wide word by author format with average word sentiment per author in cells
+  author_nouns_wide <- dcast(author_nouns[,c(author_var, "lemma", "sentiment")], 
+                               paste0(rlang::sym(author_var),"~lemma"), mean, na.rm = TRUE)
+  rownames(author_nouns_wide) <- author_nouns_wide[[author_var]]
+  author_nouns_wide[[author_var]] <- NULL
+  
+  # remove non-shared nouns
+  author_nouns_wide <- Filter(function(x) length(which(!is.nan(x)))>1, author_nouns_wide)
+  
+  # order nouns by tfidf
+  tfidf_order <- unique(author_nouns$lemma[order(author_nouns$tfidf, decreasing = TRUE)])
+  tfidf_order <- tfidf_order[tfidf_order%in%names(author_nouns_wide)]
+  author_nouns_wide <- author_nouns_wide[,tfidf_order]
+  
+  # reduce dataframe to most important nouns
+  author_nouns_wide <- author_nouns_wide[,1:nouns]
+  
+  return(author_nouns_wide)
 }
 
 
