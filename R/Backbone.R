@@ -1,4 +1,4 @@
-backbone <- function(g, alpha = 0.05){
+Backbone <- function(g, alpha = 0.05){
   
   if (igraph::has.multiple(g))
     stop("This disparity filter does not yet support multiple edges")
