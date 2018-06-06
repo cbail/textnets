@@ -6,7 +6,7 @@
 # stems words, and d) creates a summarized tidy text format (where each row of the # dataset describes the prevalence of each word within the document)
 
 PrepText <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
-                     remove_url = FALSE, remove_stop_words=FALSE, stem=FALSE, remove_numbers=FALSE) {
+                    remove_url = FALSE, remove_stop_words=FALSE, stem=FALSE, remove_numbers=FALSE) {
   
   #remove URLS
   if (remove_url) {
@@ -43,6 +43,11 @@ PrepText <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
   
   textdata <- textdata %>%
     rename_(group = c(groupvar))
+  
+  if (length(node_type)>1){
+    warning(paste0("You did not specify a node_type. Returned nodes are ", groupvar, "."))
+    node_type <- "groups"
+  }
   
   if (node_type=="groups"){
     #count terms by document
