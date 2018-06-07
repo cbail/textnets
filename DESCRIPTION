@@ -23,7 +23,7 @@ Imports:
     ggraph,
     networkD3
 Suggests:
-    
+    sotu
 SystemRequirements: Optional Python Spacy Backend for Part of Speech Tagging
 NeedsCompilation: no
 License: None
