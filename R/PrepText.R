@@ -38,7 +38,7 @@ PrepText <-function(textdata, groupvar, textvar, node_type=c("groups","words"),
   
   if (stem){
     textdata<-textdata %>%
-      mutate_at("word", funs(wordStem((.), language="en")))
+      mutate_at("word", funs(SnowballC::wordStem((.), language="en")))
   }
   
   textdata <- textdata %>%
