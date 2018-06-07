@@ -21,7 +21,9 @@ Imports:
     phrasemachine,
     igraph,
     ggraph,
-    networkD3
+    networkD3,
+    stopwords,
+    sotu
 Suggests:
     sotu
 SystemRequirements: Optional Python Spacy Backend for Part of Speech Tagging
