@@ -13,6 +13,15 @@ Depends:
     dplyr (>= 0.7.4)
 Imports:
     dplyr (>= 0.7.4),
+    Matrix,
+    tidytext,
+    stringr,
+    SnowballC,
+    reshape2,
+    phrasemachine,
+    igraph,
+    ggraph,
+    networkD3,
 Suggests:
     nycflights13
 SystemRequirements: Optional Python Spacy Backend for Part of Speech Tagging
