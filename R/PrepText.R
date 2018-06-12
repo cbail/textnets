@@ -1,3 +1,15 @@
+# This prep_text function reads in a dataframe and requires two variable names
+# one that describes the document name, and one that describes the text of
+# the document. The node_type argument describes whether the user wants to
+# create a network where the nodes are words within a document, or the nodes are the
+# documents themselves. If the input data are tweets rather than regular text, 
+# tokenizer should be specified as `tokenizer = "tweets"` which will correctly unnest hashtags and
+# allow to remove urls using `strip_url = TRUE`. Additional arguments to be passed to tokenizer are
+# `strip_punct` which defaults to TRUE and `strip_numeric` defaulting to FALSE.
+# The function creates a dataframe in summarized tidy text format (where each row of the dataset 
+# describes the prevalence of each word within the document). Optionally, the function a) parses noun compounds;
+# b) removes numeric tokens; c) removes stop words; and b) returns nouns and proper nouns only.
+
 PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"), 
                     tokenizer = c("words", "tweets"), pos = c("all", "nouns"),
                     language = "english", remove_stop_words = FALSE, 
