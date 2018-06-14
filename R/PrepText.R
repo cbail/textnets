@@ -20,11 +20,13 @@ PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"
                     udmodel_lang = NULL,
                     ...) {
   
+  # remove non-UTF8 characters
+  textdata[[textvar]] <- iconv(textdata[[textvar]], "ASCII", "UTF-8",sub='')
+  
   # remove emojis, symbols, and meta characters from tweets
   if (tokenizer=="tweets") {
-    textdata[[textvar]] <- iconv(textdata[[textvar]], "ASCII", "UTF-8",sub='')
     textdata[[textvar]] <- gsub("&amp;|&lt;|&gt;|RT", "", textdata[[textvar]])
-    if (!is.null(remove_numbers)) {
+    if (!is.null(remove_numbers) && isTRUE(remove_numbers)) { # && evaluates arg two only if arg one is true
       textdata[[textvar]]<-gsub("\\b\\d+\\b", "",textdata[[textvar]])
     }
   }
@@ -39,20 +41,20 @@ PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"
   
   ## DEFAULT: ANNOTATE WORDS NOT COMPOUND NOUNS
   if (isFALSE(compound_nouns)){
-  
-  textdata_tokens <- textdata %>%
-    select(groupvar, textvar) %>%
-    unnest_tokens_(output = "word", input = textvar, token = tokenizer, ...)
-  
-  # get part of speech with udpipe
-  # annotate for pos only w/ pre-tokenized data
-  # following: https://cran.r-project.org/web/packages/udpipe/vignettes/udpipe-annotation.html#annotate_your_text
-  textdata_pos <- as.data.frame(udpipe_annotate(udmodel_lang, x = textdata_tokens$word,
+    
+    textdata_tokens <- as_tibble(textdata) %>%
+      select(groupvar, textvar) %>%
+      unnest_tokens_(output = "word", input = textvar, token = tokenizer, ...)
+    
+    # get part of speech with udpipe
+    # annotate for pos only w/ pre-tokenized data
+    # following: https://cran.r-project.org/web/packages/udpipe/vignettes/udpipe-annotation.html#annotate_your_text
+    textdata_pos <- as.data.frame(udpipe_annotate(udmodel_lang, x = textdata_tokens$word,
                                                 tagger = "default", parser = "none",
                                                 tokenizer = "vertical"))
-  
-  # combine part of speech and textdata
-  textdata <- bind_cols(textdata_tokens, textdata_pos[, c("upos", "lemma")])
+    
+    # combine part of speech and textdata
+    textdata <- bind_cols(textdata_tokens, textdata_pos[, c("upos", "lemma")])
   }
 
   
@@ -60,7 +62,7 @@ PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"
   if (isTRUE(compound_nouns)){
     
     # we use tidytext to flexibly tokenize words or tweets
-    textdata_tokens <- textdata %>%
+    textdata_tokens <- as_tibble(textdata) %>%
       select(groupvar, textvar) %>%
       unnest_tokens_(output = "word", input = textvar, token = tokenizer, strip_punct = FALSE, ...)
     
@@ -71,9 +73,8 @@ PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"
     
     # parse dependencies with udpipe
     textdata_dep <- as.data.frame(udpipe_annotate(udmodel_lang, x = textdata_tokens$documents,
-                                                  doc_id = textdata[[groupvar]],
-                                                  tagger = "default", parser = "default",
-                                                  tokenizer = "vertical"))
+                                                  doc_id = textdata_tokens[[groupvar]],
+                                                  tagger = "default", parser = "default"))
     
     # NOUN COMPOUNDS
     # retrieve noun compounds
@@ -123,7 +124,7 @@ PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"
   }
 
   if (node_type=="groups"){
-    # count terms by document
+    # count terms by group
     textdata <- textdata %>%
       group_by_(groupvar) %>%
       count(lemma) %>%
@@ -131,7 +132,7 @@ PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"
   }
 
   if (node_type=="words"){
-    # count documents by term
+    # count groups by term
     textdata <- textdata %>%
       group_by(lemma) %>%
       count_(groupvar) %>%
