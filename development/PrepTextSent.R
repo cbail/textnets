@@ -11,11 +11,13 @@ PrepTextSent <- function(textdata, groupvar, textvar, node_type=c("groups", "wor
                          remove_numbers = NULL, compound_nouns = FALSE,
                          sentiment_lexicon = c("afinn", "bing"),
                          udmodel_lang = NULL,
-                                ...){
+                         ...){
+  
+  # remove non-UTF8 characters
+  textdata[[textvar]] <- iconv(textdata[[textvar]], "ASCII", "UTF-8",sub='')
   
   # remove emojis, symbols, and meta characters from tweets
   if (tokenizer=="tweets") {
-    textdata[[textvar]] <- iconv(textdata[[textvar]], "ASCII", "UTF-8",sub='')
     textdata[[textvar]] <- gsub("&amp;|&lt;|&gt;|RT", "", textdata[[textvar]])
     if (!is.null(remove_numbers) && isTRUE(remove_numbers)) { # && evaluates arg two only if arg one is true
       textdata[[textvar]]<-gsub("\\b\\d+\\b", "",textdata[[textvar]])
@@ -36,19 +38,19 @@ PrepTextSent <- function(textdata, groupvar, textvar, node_type=c("groups", "wor
     # split up text data into sentences
     textdata <- as_tibble(textdata) %>%
       unnest_tokens_(output = "sentences", input = textvar, token = "sentences")
-  
+    
     # create sentence id
     textdata <- textdata %>%
       group_by_(groupvar) %>%
       mutate(sid = row_number())
-  
+    
     # split up sentences into words and add term id
     textdata_tokens <- unnest_tokens(textdata,
                                      output = "word", input = "sentences",
                                      token = tokenizer, drop = FALSE, ...) %>%
       group_by(sid) %>%
       mutate(tid = row_number())
-  
+    
     # get part of speech with udpipe
     # annotate for pos only w/ pre-tokenized data
     # following: https://cran.r-project.org/web/packages/udpipe/vignettes/udpipe-annotation.html#annotate_your_text
@@ -58,7 +60,7 @@ PrepTextSent <- function(textdata, groupvar, textvar, node_type=c("groups", "wor
     
     # combine part of speech and textdata
     textdata <- bind_cols(textdata_tokens, textdata_pos[, c("upos", "lemma")])
-  
+    
     # get sentiments for words
     if (length(sentiment_lexicon)>1){
       warning(paste0("You did not specify a sentiment lexicon. Function defaults to afinn"))
@@ -67,22 +69,22 @@ PrepTextSent <- function(textdata, groupvar, textvar, node_type=c("groups", "wor
     if(sentiment_lexicon=="afinn"){
       textdata <- textdata %>%
         left_join(get_sentiments(sentiment_lexicon), by = c("lemma" = "word"))
-      } else if (sentiment_lexicon=="bing"){
-        textdata <- textdata %>%
-          left_join(get_sentiments("bing"), by = c("lemma" = "word")) %>%
-          mutate(score = ifelse(sentiment=="negative", -1,
-                                ifelse(sentiment=="positive", 1,
-                                       NA)))
-        } else stop("You did not specify a supported sentiment lexicon.")
+    } else if (sentiment_lexicon=="bing"){
+      textdata <- textdata %>%
+        left_join(get_sentiments("bing"), by = c("lemma" = "word")) %>%
+        mutate(score = ifelse(sentiment=="negative", -1,
+                              ifelse(sentiment=="positive", 1,
+                                     NA)))
+    } else stop("You did not specify a supported sentiment lexicon.")
   }
-    
+  
   ## IF SPECIFIED: ANNOTATE WORDS AND COMPOUND NOUNS
   if (isTRUE(compound_nouns)){
     # split up documents into words
     textdata_tokens <- unnest_tokens_(textdata,
-                                     output = "word", input = textvar,
-                                     token = tokenizer, drop = FALSE, 
-                                     strip_punct = FALSE, ...)
+                                      output = "word", input = textvar,
+                                      token = tokenizer, drop = FALSE, 
+                                      strip_punct = FALSE, ...)
     
     # then we prepare the tokenized documents for dependency parsing
     textdata_tokens <- textdata_tokens %>% 
@@ -91,7 +93,7 @@ PrepTextSent <- function(textdata, groupvar, textvar, node_type=c("groups", "wor
     
     # parse dependencies with udpipe
     textdata_dep <- as.data.frame(udpipe_annotate(udmodel_lang, x = textdata_tokens$documents,
-                                                  doc_id = textdata[[groupvar]],
+                                                  doc_id = textdata_tokens[[groupvar]],
                                                   tagger = "default", parser = "default"))
     
     # get sentiments for words
@@ -179,6 +181,6 @@ PrepTextSent <- function(textdata, groupvar, textvar, node_type=c("groups", "wor
       group_by(lemma, !!as.name(groupvar)) %>%
       summarise(`count` = n(), sentiment = median(sentiment))
   }
-
+  
   return(textdata)
 }
