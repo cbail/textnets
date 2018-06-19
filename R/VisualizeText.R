@@ -7,10 +7,10 @@
 # to create something resembling a pretty plot. Right now a big problem is that text labels
 # take up too much space,  I may move to a heatmap implementation to get at this.
 
-VisualizeText <- function(text_network, backbone_alpha, label_degree_cut=0, betweenness=FALSE){
+VisualizeText <- function(text_network, backbone_alpha = .3, label_degree_cut=0, betweenness=FALSE){
   
   # define backbone function for pruning
-  backbone <- function(g, alpha = 0.05){
+  backbone <- function(g, backbone_alpha = backbone_alpha){
     
     if (igraph::has.multiple(g))
       stop("This disparity filter does not yet support multiple edges")
@@ -85,4 +85,5 @@ VisualizeText <- function(text_network, backbone_alpha, label_degree_cut=0, betw
     geom_node_text(aes(label = name, filter=degree>label_degree_cut), repel = TRUE, size=2) +
     theme_void()
 }
+
 
