@@ -67,7 +67,7 @@ VisualizeText <- function(text_network, alpha = .3, label_degree_cut=0, betweenn
   V(pruned)$modularity <- communities$membership
   
   #calculate betweenness for sizing nodes
-  size <- 2
+  size <- 3
   if(betweenness){
     size <- betweenness(pruned)
     size<-size/10
@@ -77,7 +77,7 @@ VisualizeText <- function(text_network, alpha = .3, label_degree_cut=0, betweenn
   ggraph(pruned, layout = "fr") +
     geom_node_point(color = V(pruned)$modularity, size = size) +
     geom_edge_link(aes(edge_alpha = weight), show.legend = FALSE)+
-    geom_node_text(aes(label = name, filter=degree>label_degree_cut), repel = TRUE, size=2) +
+    geom_node_text(aes(label = name, filter=degree>label_degree_cut), repel = TRUE, size=3) +
     theme_void()
 }
 
