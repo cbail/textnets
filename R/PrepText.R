@@ -21,7 +21,7 @@ PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"
                     ...) {
   
   # remove non-UTF8 characters
-  textdata[[textvar]] <- iconv(textdata[[textvar]], "ASCII", "UTF-8",sub='')
+  textdata[[textvar]] <- iconv(textdata[[textvar]],  to="UTF-8", sub='')
   
   # remove emojis, symbols, and meta characters from tweets
   if (tokenizer=="tweets") {
