@@ -6,6 +6,9 @@ R package for automated text analysis using network techniques.
 
 ### Overview
 
+<iframe src="http://bl.ocks.org/mbostock/raw/4061502/0a200ddf998aa75dfdb1ff32e16b680a15e5cb01/" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+
+
 There is growing interest in automated detection of latent themes in unstructured text data. Though topic models have become a popular choice for such tasks, the textnets package provides an alternative technique that synthesizes recent advances in network analysis/graph theory and natural language processing which has several significant advantages over conventional "bag of words" models.
 
 Though network analysis is often used to describe relationships between people-- particularly within the social sciences-- it can also be applied to relationships between words. For example, network ties can be created by the co-occurence of individual words across documents, or ties can be created between documents themselves using a two-mode network projection. 
