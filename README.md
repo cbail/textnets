@@ -107,7 +107,7 @@ The following code prepares the first State of the Union address for each presid
 
 ```r
 sotu_firsts <– sotu %>% group_by(president) %>% slice(1L)
-sotu_firsts_nouns <- PrepText(sotu_firsts, groupvar = "president", textvar = "sotu_text", node_type = "groups", tokenizer = "words", pos = "nouns", remove_stop_words = TRUE, compound_nouns = TRUE))
+sotu_firsts_nouns <- PrepText(sotu_firsts, groupvar = "president", textvar = "sotu_text", node_type = "groups", tokenizer = "words", pos = "nouns", remove_stop_words = TRUE, compound_nouns = TRUE)
 ```
 
 The syntax for using the `PrepTextSent` function is the same as the `PrepText` function with the difference that by default only nouns and noun compounds are returned and users need to specify the sentiment lexicon they would like to use `sentiment_lexicon = c("afinn", "bing")`. Since the `PrepTextSent` function needs to perform both part of speech tagging and dependency parsing, it will be marginally slower than `PrepText`. The amount of time will depend on both the number and the length of texts. But users may conclude that the added time is worth it if they believe that positions on issues as expressed through positive and negative sentiment might reveal clustering among documents debating the same issues.
