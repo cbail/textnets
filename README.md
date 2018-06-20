@@ -70,25 +70,13 @@ When you're using textnets, one node set will always be comprised of the words f
 
 ### Format of Input Data
 
-The textnets package requires input to be formatted as a dataframe, where each row represents a document. The text of each document is contained in a column, with other columns including meta data. To get a better sense of this, let's take a look at some sample data that are included with the `textnets` package called `sotu`.
+The textnets package requires input to be formatted as a dataframe, where each row represents a document. The text of each document is contained in a column, with other columns including meta data. To get a better sense of this, let's take a look at some sample data that are included with the `textnets` package called `sotu`. You can load these data into your rStudio session as follows:
 
 ```r
 data("sotu")
-library(sotu)
 ```
 
-The sotu data includes texts from The State of the Union Address, which is a speech given by the president of the United States each year to describe past accomplishments and future challenges facing the nation. It is a popular dataset in the field of Natural Language Processing because it provides a diverse range of language by different individuals over time. For our purposes, the data are ideal because they contain the transcript text for every State of the Union address, as well as meta data describing the president who delivered the address, the date of delivery, and the president's party affiliation.
-
-The following code binds the sotu text and meta data objects together to make a single dataframe, as required for textnets analysis. On the second line of code, we make sure that the texts column of this variable `sotu$sotu_text` is a character vector.
-
-```r
-sotu <- data.frame(cbind(sotu_text, sotu_meta), stringsAsFactors=FALSE)
-sotu$sotu_text <- as.character(sotu$sotu_text)
-```
-
-Here is what the data look like. Yours should look similar if you plan to analyze them using the textnets package.
-
-</br></br>
+If you browse these data, you will see that it includes all texts from The State of the Union Address, which is a speech given by the president of the United States each year to describe past accomplishments and future challenges facing the nation. It is a popular dataset in the field of Natural Language Processing because it provides a diverse range of language by different individuals over time. For our purposes, the data are ideal because they contain the transcript text for every State of the Union address, as well as meta data describing the president who delivered the address, the date of delivery, and the president's party affiliation.
 
 
 ## Prepare Text
@@ -99,7 +87,7 @@ Let's begin with the `PrepText` function. This function has three required argum
 
 Additionally, the `PrepText` function takes eight optional arguments which control the exact way the text is processed. First, users should specify which type of two-mode network projection they are interested in using the `node_type` argument. `node_type = "words"` prepares texts for a network in which words will be the nodes (with edges to each other based on co-appearance in the same group) and `node_type = "groups"` prepares data for a network with groups as nodes (with edges based on overlap in words between the groups). An example of the former application is Rule, Cointet, and Bearman (2015), and an example of the latter application is Bail (2016). 
 
-The other optional arguments are (1) `tokenizer` which controls the tokenizer backend and allows accurate Tweet tokenization including mentions (@) and hashtags (#) with the specification `tokenizer = "tweets"`; (2) `pos` which controls whether all parts of speech (`pos = "all"`) or just nouns and noun compouns should be returned (`pos = "nouns"`); (3) `language` which controls the language for part-of-speech tagging and the stop word lexicon; (4) `udmodel_lang` which allows users to pass a previously loaded udpipe model to the function; and (5-7) a set of control arguments specifying whether stop words, i.e. very common nouns such as "and", "the", "a", in English, should be removed (`remove_stop_words`), whether numeric tokens should be deleted (`remove_numbers`); for `tokenizer = "tweets"` only), and whether compound nouns should be identified and returned (`compound_nouns`). The function also allows to pass arguments to the specific tokenizer backend, such as `strip_numeric` for `tokenizer = "words"` or `strip_url` for `tokenizer = "tweets"`.
+The other optional arguments are (1) `tokenizer` which controls how words are divided into unit of analysis and allows accurate tokenization of Twitter texts including mentions (@) and hashtags (#) with the specification `tokenizer = "tweets"`; (2) `pos` which controls whether all parts of speech (`pos = "all"`) or just nouns and noun compouns should be returned (`pos = "nouns"`); (3) `language` which controls the language for part-of-speech tagging and the stop word lexicon; (4) `udmodel_lang` which allows users to pass a previously loaded udpipe model to the function; and (5-7) a set of control arguments specifying whether stop words, i.e. very common nouns such as "and", "the", "a", in English, should be removed (`remove_stop_words`), whether numeric tokens should be deleted (`remove_numbers`); for `tokenizer = "tweets"` only), and whether compound nouns should be identified and returned (`compound_nouns`). The function also allows to pass arguments to the specific tokenizer backend, such as `strip_numeric` for `tokenizer = "words"` or `strip_url` for `tokenizer = "tweets"`.
 
 The output of the `PrepText` function is a dataframe in "tidytext" style, where each row of the dataframe describes a word, the document that it appears in, and its overall frequency within that document. The dataframe returned by `PrepTextSent` additionally contains a column containing the median of the sum of the sentiments in the sentences containing each word.
 
