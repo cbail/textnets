@@ -82,7 +82,7 @@ The output of the `PrepText` function is a dataframe in "tidytext" style, where 
 The following code prepares the first State of the Union address for each president, specifying that nodes will be the group of presidents, with edges drawn according to the overlap of words used in their speeches. In this example we also remove stop words and return noun compounds. Since part-of-speech tagging is a lengthy process, we are only using the first speech for each president to simply our working example:
 
 ```r
-sotu_firsts <– sotu %>% group_by(president) %>% slice(1L)
+sotu_firsts <- sotu %>% group_by(president) %>% slice(1L)
 ```
 
 On a 2017 MacBook Pro (with a 2.3 GHz i5 & 8 GB ram), the code below a little less than five minutes to run.
