@@ -70,10 +70,10 @@ When you're using textnets, one node set will always be comprised of the words f
 
 ### Format of Input Data
 
-At present, the textnets package requires input to be formatted as a dataframe, where each row represents a document. The text of each document is contained in a column, with other columns including meta data. To get a better sense of this, let's take a look at some sample data provided by the sotu package in R. We will be using this data throughout the remainder of the tutorial.
+The textnets package requires input to be formatted as a dataframe, where each row represents a document. The text of each document is contained in a column, with other columns including meta data. To get a better sense of this, let's take a look at some sample data that are included with the `textnets` package called `sotu`.
 
 ```r
-install.packages("sotu")
+data("sotu")
 library(sotu)
 ```
 
