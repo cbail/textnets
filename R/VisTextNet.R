@@ -5,7 +5,7 @@
 
 
 
-VisualizeText <- function(text_network, alpha = .25, label_degree_cut=0, betweenness=FALSE){
+VisTextNet <- function(text_network, alpha = .25, label_degree_cut=0, betweenness=FALSE){
   
   
   
