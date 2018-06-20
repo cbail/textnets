@@ -119,7 +119,7 @@ Finally, the textnets package includes two functions to visualize text networks 
 The `VisualizeText` function also includes an argument that determines which nodes will be labeled, since network visualizations with too many node labels can be difficult to interpret. The user specifies an argument called `label_degree_cut` which specifies the degree, or number of connections, that nodes should have to get labeled. For example, if the user only wants nodes that have at least 0 connections to other nodes to be labeled (and only wants to visualize edges with a weight of alpha <= .3), they would use the following code:
 
 ```r
-VisualizeText(sotu_firsts_network, .3, label_degree_cut = 0)
+VisTextNet(sotu_firsts_network, .3, label_degree_cut = 0)
 ```
 
 ![Plot](https://raw.github.com/cbail/textnets/master/figures/sotu_firsts_backbone.png)
@@ -128,14 +128,14 @@ VisualizeText(sotu_firsts_network, .3, label_degree_cut = 0)
 The final function in the textnets package is the `VisualizeTextD3js` function. This function outputs an interactive javascript visualization of the text network, where the user can mouse over each node in order to reveal its node label. Once again, nodes are coloured by their modularity class, and the user must sepcify a `prune_cut`argument:
 
 ```r
-VisualizeTextD3js(sotu_text_network, .50)
+VisTextNetD3(sotu_text_network, .50)
 ```
 
 To save this as an html file for sharing with others or in a presentation, the following can be used. The `height` and `width` parameters are set in pixels, and `bound=TRUE` will prevent the network from dispersing beyond these dimensions. While this may help viewers to see all nodes, it will also cause nodes to cluster at the limits of height and wigth. This can be prevented by increasing the `charge` parameters, which specifies the strength of node repulsion (negative value) or attraction (positive value). The `zoom` parameter indicates whether to allow users to zoom in and out of the network, which can be especially helpful in large networks for exploring clusters.
 
 ```r
 library(htmlwidgets)
-vis <- VisualizeTextD3js(sotu_text_network, 
+vis <- VisTextNetD3(sotu_text_network, 
                       prune_cut=.50,
                       height=1000,
                       width=1400,
