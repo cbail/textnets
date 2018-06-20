@@ -30,18 +30,6 @@ install_github("cbail/textnets")
 library(textnets)
 ```
 
-You'll also need a few other packages for network analysis, text analysis, and visualization (install where necessary).
-
-```r
-library(dplyr)
-library(tidytext)
-library(udpipe)
-library(igraph)
-library(ggraph)
-library(networkD3)
-```
-
-
 ### Two-mode networks
 
 Before we move on to a working example, it's important to note that the textnet package constructs two-mode networks out of texts, also known as affiliation or bipartite networks. Such networks include two sets of nodes, with edges drawn only between nodes of *different* sets. To clarify this concept, let's take the example of a network where the first node set is words found in US newspaper headlines on the day of the first moon landing (July 20, 1969), and the second node set is the newspapers themselves. The data would look something like this:
@@ -91,10 +79,15 @@ The other optional arguments are (1) `tokenizer` which controls how words are di
 
 The output of the `PrepText` function is a dataframe in "tidytext" style, where each row of the dataframe describes a word, the document that it appears in, and its overall frequency within that document. The dataframe returned by `PrepTextSent` additionally contains a column containing the median of the sum of the sentiments in the sentences containing each word.
 
-The following code prepares the first State of the Union address for each president, specifying that nodes will be the group of presidents, with edges drawn according to the overlap of words used in their speeches. In this example we also remove stop words and return noun compounds. Since part-of-speech tagging is a very computationally intensive process, we are only using the first speech for each president. On a 2017 MacBook Pro (with a 2.3 GHz i5 & 8 GB ram), this takes a little less than five minutes to run.
+The following code prepares the first State of the Union address for each president, specifying that nodes will be the group of presidents, with edges drawn according to the overlap of words used in their speeches. In this example we also remove stop words and return noun compounds. Since part-of-speech tagging is a lengthy process, we are only using the first speech for each president to simply our working example:
 
 ```r
 sotu_firsts <– sotu %>% group_by(president) %>% slice(1L)
+```
+
+On a 2017 MacBook Pro (with a 2.3 GHz i5 & 8 GB ram), the code below a little less than five minutes to run.
+
+```{r
 sotu_firsts_nouns <- PrepText(sotu_firsts, groupvar = "president", textvar = "sotu_text", node_type = "groups", tokenizer = "words", pos = "nouns", remove_stop_words = TRUE, compound_nouns = TRUE)
 ```
 
@@ -116,6 +109,13 @@ sotu_firsts_network <- CreateTextnet(sotu_firsts_nouns)
 ```
 
 </br></br>
+
+
+
+
+
+
+
 
 ## Analyzing Text Networks
 
