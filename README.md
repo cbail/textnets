@@ -137,13 +137,12 @@ In order to save this interative visualization as a .html file, users can use th
 
 ```r
 library(htmlwidgets)
-vis <- VisTextNetD3(sotu_text_network, 
-                      prune_cut=.50,
-                      height=1000,
-                      width=1400,
-                      bound=FALSE,
-                      zoom=TRUE,
-                      charge=-30)
+vis <- VisTextNetD3(sotu_firsts_network,
+                    height=1000,
+                    width=1400,
+                    bound=FALSE,
+                    zoom=TRUE,
+                    charge=-30)
 saveWidget(vis, "sotu_textnet.html")
 
 
