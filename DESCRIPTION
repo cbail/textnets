@@ -9,7 +9,7 @@ Description: Package for analyzed unstructured text data using network analysis 
 URL: https://github.com/cbail/textnets
 BugReports: https://github.com/cbail/textnets/issues
 Depends:
-    R (>= 3.2),
+    R (>= 3.5),
     dplyr (>= 0.7.4),
     udpipe,
     ggraph,
