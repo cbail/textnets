@@ -12,19 +12,16 @@ Depends:
     R (>= 3.2),
     dplyr (>= 0.7.4),
     udpipe,
-    ggraph
+    ggraph,
+    networkD3
 Imports:
     Matrix,
     tidytext,
     stringr,
-    SnowballC,
     reshape2,
-    phrasemachine,
     igraph,
     ggraph,
-    networkD3,
     stopwords,
-    sotu
 Suggests:
 SystemRequirements: Optional Python Spacy Backend for Part of Speech Tagging
 NeedsCompilation: no
