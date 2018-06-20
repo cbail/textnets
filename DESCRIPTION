@@ -11,7 +11,8 @@ BugReports: https://github.com/cbail/textnets/issues
 Depends:
     R (>= 3.2),
     dplyr (>= 0.7.4),
-    udpipe
+    udpipe,
+    ggraph
 Imports:
     Matrix,
     tidytext,
