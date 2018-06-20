@@ -128,7 +128,7 @@ The user can also specify whether nodes should be sized according to their betwe
 The second visualization function in the textnets package is the `VisTextNetD3` function. This function outputs an interactive javascript visualization of the text network, where the user can mouse over each node in order to reveal its node label. Once again, nodes are coloured by their modularity class.
 
 ```r
-VisTextNetD3(sotu_text_network)
+VisTextNetD3(sotu_firsts_network)
 ```
 
 To save this as an html file for sharing with others or in a presentation, the following can be used. The `height` and `width` parameters are set in pixels, and `bound=TRUE` will prevent the network from dispersing beyond these dimensions. While this may help viewers to see all nodes, it will also cause nodes to cluster at the limits of height and wigth. This can be prevented by increasing the `charge` parameters, which specifies the strength of node repulsion (negative value) or attraction (positive value). The `zoom` parameter indicates whether to allow users to zoom in and out of the network, which can be especially helpful in large networks for exploring clusters.
