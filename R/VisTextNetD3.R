@@ -4,7 +4,7 @@
 
 
 
-VisTextNetD3<-function(text_network, alpha=.3, height = NULL, width = NULL, bound = FALSE, zoom = FALSE, charge = -30){
+VisTextNetD3<-function(text_network, alpha=.25, height = NULL, width = NULL, bound = FALSE, zoom = FALSE, charge = -30){
   
   
   
