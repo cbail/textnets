@@ -1,7 +1,6 @@
 export(CreateTextnet)
 export(InterpretText)
 export(PrepText)
-export(PrepTextNounPhrases)
 export(TextCentrality)
 export(TextCommunities)
 export(VisTextNet)
