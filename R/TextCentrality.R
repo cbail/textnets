@@ -4,7 +4,7 @@
 # want to measure whose discourse on Twitter reaches across the most conversations
 # among elected officials.
 
-TextCentrality<-function(text_network){
+TextCentrality<-function(text_network, alpha=.25){
   
   
   
