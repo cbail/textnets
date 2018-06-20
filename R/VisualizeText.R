@@ -6,7 +6,7 @@
 
 
 
-VisualizeText <- function(text_network, alpha = .3, label_degree_cut=0, betweenness=FALSE){
+VisualizeText <- function(text_network, alpha = .25, label_degree_cut=0, betweenness=FALSE){
   
     
   
@@ -74,7 +74,7 @@ VisualizeText <- function(text_network, alpha = .3, label_degree_cut=0, betweenn
   }
   
   # make visualization
-  ggraph(pruned, layout = "fr") +
+  ggraph(pruned) +
     geom_node_point(color = V(pruned)$modularity, size = size) +
     geom_edge_link(aes(edge_alpha = weight), show.legend = FALSE)+
     geom_node_text(aes(label = name, filter=degree>label_degree_cut), repel = TRUE, size=3) +
