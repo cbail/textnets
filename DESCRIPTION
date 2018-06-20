@@ -10,7 +10,8 @@ URL: https://github.com/cbail/textnets
 BugReports: https://github.com/cbail/textnets/issues
 Depends:
     R (>= 3.2),
-    dplyr (>= 0.7.4)
+    dplyr (>= 0.7.4),
+    udpipe
 Imports:
     Matrix,
     tidytext,
@@ -22,8 +23,7 @@ Imports:
     ggraph,
     networkD3,
     stopwords,
-    sotu,
-    udpipe
+    sotu
 Suggests:
 SystemRequirements: Optional Python Spacy Backend for Part of Speech Tagging
 NeedsCompilation: no
