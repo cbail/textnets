@@ -16,8 +16,9 @@ Though the idea to think about texts as networks of words is not entirely new, a
 
 * preparing texts 
 * creating text networks
-* detecting themes within text networks
 * visualizing text networks
+* detecting themes within text networks
+
 
 ## Getting Started
 
@@ -112,37 +113,6 @@ sotu_firsts_network <- CreateTextnet(sotu_firsts_nouns)
 
 
 
-
-
-
-
-
-## Analyzing Text Networks
-
-In order to group documents according to their similarity-- or in order to identify latent themes across texts-- users may wish to cluster documents or words within text networks. The `TextCommunities` function applies the Louvain community detection algorithm to do this, which automatically uses the edge weights and determines the number of clusters within a given network. The function outputs a dataframe with the cluster or "modularity" class to which each document or word has been assigned.
-
-```r
-sotu_firsts_communities <- TextCommunities(sotu_firsts_network)
-```
-In order to further understand which terms are driving the clustering of documents or words, the user can use the `InterpretText` function, which also reads in an object created by the `CreateTextnet` function and outputs the words with the 10 highest TFIDF frequencies within each cluster or modularity class. In order to match words, the function requires that the user specify the name of the text data frame object used to create the text network-- in this case `sotu_text_data` (see above).
-
-```r
-top_words_modularity_classes <- InterpretText(sotu_firsts_network, sotu_firsts_nouns)
-```
-
-</br></br>
-
-## Centrality Measures
-
-Often in social networks, researchers wish to calculate measures of influence or centrality in order to predict whether or not occupying brokerage positions can create greater social rewards for individuals. As Bail (2016) shows, the same logic can be applied to text networks to develop a measure of "cultural betweenness" or the extent to which a given document or word is between clusters. To calculate cultural betweennes as well as other centrality measures, `textnet` users can use the `TextCentrality` function.
-
-```r
-text_centrality <- TextCentrality(sotu_firsts_network)
-```
-
-</br></br>
-
-
 ## Visualizing Text Networks
 
 Finally, the textnets package includes two functions to visualize text networks created in the previous steps. The `VisualizeText` function creates a network diagram where nodes are colored by their cluster or modularity class (see previous section). In many cases, text networks will be very dense (that is, there will be a very large number of edges because most documents share at least one word). Visualizing text networks therefore creates inherent challenges, because such dense networks are very cluttered. To make text networks more readable, the `VisualizeText` function requires the user to specify a `backbone_alpha` argument, which specifies the alpha level for the weight of the edges to be kept. For example, if the user sets `backbone_alpha = .05` only edges that have a weight significant at alpha<=.05 will be visualized. 
@@ -178,6 +148,37 @@ saveWidget(vis, "sotu_textnet.html")
 
 ```
 </br></br>
+
+
+
+
+
+## Interpreting Text Networks
+
+In order to group documents according to their similarity-- or in order to identify latent themes across texts-- users may wish to cluster documents or words within text networks. The `TextCommunities` function applies the Louvain community detection algorithm to do this, which automatically uses the edge weights and determines the number of clusters within a given network. The function outputs a dataframe with the cluster or "modularity" class to which each document or word has been assigned.
+
+```r
+sotu_firsts_communities <- TextCommunities(sotu_firsts_network)
+```
+In order to further understand which terms are driving the clustering of documents or words, the user can use the `InterpretText` function, which also reads in an object created by the `CreateTextnet` function and outputs the words with the 10 highest TFIDF frequencies within each cluster or modularity class. In order to match words, the function requires that the user specify the name of the text data frame object used to create the text network-- in this case `sotu_text_data` (see above).
+
+```r
+top_words_modularity_classes <- InterpretText(sotu_firsts_network, sotu_firsts_nouns)
+```
+
+</br></br>
+
+## Centrality Measures
+
+Often in social networks, researchers wish to calculate measures of influence or centrality in order to predict whether or not occupying brokerage positions can create greater social rewards for individuals. As Bail (2016) shows, the same logic can be applied to text networks to develop a measure of "cultural betweenness" or the extent to which a given document or word is between clusters. To calculate cultural betweennes as well as other centrality measures, `textnet` users can use the `TextCentrality` function.
+
+```r
+text_centrality <- TextCentrality(sotu_firsts_network)
+```
+
+</br></br>
+
+
 
 ### References
 
