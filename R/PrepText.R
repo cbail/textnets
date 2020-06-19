@@ -42,9 +42,9 @@ PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"
   ## DEFAULT: ANNOTATE WORDS NOT COMPOUND NOUNS
   if (isFALSE(compound_nouns)){
     
-    textdata_tokens <- as_tibble(textdata) %>%
-      select(groupvar, textvar) %>%
-      unnest_tokens_(output = "word", input = textvar, token = tokenizer, ...)
+    textdata_tokens <- as_tibble({{textdata}}) %>%
+      select({{groupvar}}, {{textvar}}) %>%
+      unnest_tokens(output = "word", input = {{textvar}}, token = {{tokenizer}}, ...)
     
     # get part of speech with udpipe
     # annotate for pos only w/ pre-tokenized data
@@ -62,13 +62,13 @@ PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"
   if (isTRUE(compound_nouns)){
     
     # we use tidytext to flexibly tokenize words or tweets
-    textdata_tokens <- as_tibble(textdata) %>%
-      select(groupvar, textvar) %>%
-      unnest_tokens_(output = "word", input = textvar, token = tokenizer, strip_punct = FALSE, ...)
+    textdata_tokens <- as_tibble({{textdata}}) %>%
+      select({{groupvar}}, {{textvar}}) %>%
+      unnest_tokens(output = "word", input = {{textvar}}, token = {{tokenizer}}, strip_punct = FALSE, ...)
     
     # then we prepare the tokenized documents for dependency parsing
     textdata_tokens <- textdata_tokens %>% 
-      group_by_(groupvar) %>% 
+      group_by_({{groupvar}}) %>% 
       summarise(documents = paste(word, collapse = "\n"))
     
     # parse dependencies with udpipe
@@ -103,7 +103,7 @@ PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"
   
   # remove stopwords
   if (remove_stop_words) {
-    textdata <- textdata %>% 
+    textdata <- {{textdata}} %>% 
       anti_join(get_stopwords(language = language), by = c("lemma" = "word"))
   }
   
@@ -113,7 +113,7 @@ PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"
     pos <- "all"
   }
   if (pos=="nouns"){
-    textdata <- textdata %>% 
+    textdata <- {{textdata}} %>% 
       filter(upos%in%c("NOUN", "PROPN"))
   }
   
@@ -125,19 +125,19 @@ PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"
 
   if (node_type=="groups"){
     # count terms by group
-    textdata <- textdata %>%
-      group_by_(groupvar) %>%
+    textdata <- {{textdata}} %>%
+      group_by_({{groupvar}}) %>%
       count(lemma) %>%
       rename(count = n)
   }
 
   if (node_type=="words"){
     # count groups by term
-    textdata <- textdata %>%
+    textdata <- {{textdata}} %>%
       group_by(lemma) %>%
-      count_(groupvar) %>%
+      count_({{groupvar}}) %>%
       rename(count = n)
   }
   
-  return(textdata)
+  return({{textdata}})
 }
