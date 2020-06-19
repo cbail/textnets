@@ -134,7 +134,7 @@ PrepText <- function(textdata, groupvar, textvar, node_type = c("groups","words"
   if (node_type=="words"){
     # count groups by term
     textdata <- {{textdata}} %>%
-      group_by(lemma) %>%
+      group_by({{lemma}}) %>%
       count_({{groupvar}}) %>%
       rename(count = n)
   }
